@@ -8,6 +8,8 @@ Write in Markdown or MDX. Organize content as files. Give readers a familiar sid
 
 [Demo](https://demo.bloggpt.reincarnatey.net) · [Documentation](https://bloggpt.reincarnatey.net/en/)
 
+> **Getting started?** Follow the [installation guide](https://bloggpt.reincarnatey.net/en/guide/getting-started), then explore configuration, writing and deployment in the [documentation](https://bloggpt.reincarnatey.net/en/).
+
 ![BlogGPT home — search and a resizable sidebar](.github/assets/readme/home.webp)
 
 ## Features
@@ -103,36 +105,26 @@ pnpm build
 pnpm preview
 ```
 
-Connecting your Git repository to **Vercel** is recommended: select Astro, use `pnpm build` as the build command and `dist` as the output directory. Production branch commits automatically build and publish the site. Follow the [Vercel deployment tutorial](apps/docs/en/guide/deployment.md#deploy-to-vercel-recommended) for the full setup. Other static hosts can also publish the complete `dist/` directory.
+Connecting your Git repository to **Vercel** is recommended: select Astro, use `pnpm build` as the build command and `dist` as the output directory. Production branch commits automatically build and publish the site. Follow the [Vercel deployment tutorial](https://bloggpt.reincarnatey.net/en/guide/deployment#deploy-to-vercel-recommended) for the full setup. Other static hosts can also publish the complete `dist/` directory.
 
 The build checks types, renders pages, copies bundled assets, generates optional share cards and creates search indexes. Preview serves the production output; rebuild after changes. Scheduled articles also need a build after their publication time.
 
-Interface translations and their registry live in `src/i18n/`. Choose content languages through `site.locales`; missing interface translations fall back automatically. Contributors add translation files and register them in `src/i18n/i18n.config.ts` as part of a repository contribution. See the [language guide](apps/docs/en/content/languages.md).
+Interface translations and their registry live in `src/i18n/`. Choose content languages through `site.locales`; missing interface translations fall back automatically. Contributors add translation files and register them in `src/i18n/i18n.config.ts` as part of a repository contribution. See the [language guide](https://bloggpt.reincarnatey.net/en/content/languages).
 
 ## Documentation
 
-```sh
-pnpm docs:dev
-pnpm docs:build
-pnpm docs:preview
-```
+Read the [English documentation](https://bloggpt.reincarnatey.net/en/) or [简体中文文档](https://bloggpt.reincarnatey.net/). The guides explain installation, every configuration field, content organization and deployment.
 
-The documentation lives in `apps/docs/`; its output is **`apps/docs/.vitepress/dist/`**. Use `DOCS_BASE` for a documentation deployment subdirectory; it is independent of the blog’s `site.baseUrl`.
-
-| Guide                                                        | Read about                                                                          |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| [Getting started](apps/docs/en/guide/getting-started.md)     | Installation, first edits and commands                                              |
-| [Configuration reference](apps/docs/en/config/reference.md)  | Every public field: types, requirements, initial values, omitted values and effects |
-| [Frontmatter](apps/docs/en/content/frontmatter.md)           | Dates, covers, visibility, taxonomy and per-entry switches                          |
-| [Content organization](apps/docs/en/content/organization.md) | Collections, stable URLs and nested folders                                         |
-| [Languages](apps/docs/en/content/languages.md)               | Interface copy and translated content files                                         |
-| [Archetypes](apps/docs/en/content/archetypes.md)             | New-content commands, templates and placeholders                                    |
-| [Extension files](apps/docs/en/customization/hooks.md)       | Global HTML, CSS and client lifecycles                                              |
-| [Deployment](apps/docs/en/guide/deployment.md)               | Domains, subdirectories and build output                                            |
-
-Read the documentation [in English](apps/docs/en/guide/getting-started.md) or [in Chinese](apps/docs/guide/getting-started.md).
-
-For documentation maintenance, create a separate Vercel project from the same repository. Keep Root Directory at the repository root, choose `Other` for Framework Preset, use `pnpm install --frozen-lockfile` for Install Command and `pnpm docs:build` for Build Command, and set Output Directory to `apps/docs/.vitepress/dist`. Select Node.js `24.x` and add `ENABLE_EXPERIMENTAL_COREPACK=1` to Production and Preview; also set `DOCS_BASE` for subdirectory hosting. Documentation changes pushed to the production branch automatically build and publish.
+| Guide                                                                            | Read about                                                                          |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [Getting started](https://bloggpt.reincarnatey.net/en/guide/getting-started)     | Installation, first edits and commands                                              |
+| [Configuration reference](https://bloggpt.reincarnatey.net/en/config/reference)  | Every public field: types, requirements, initial values, omitted values and effects |
+| [Frontmatter](https://bloggpt.reincarnatey.net/en/content/frontmatter)           | Dates, covers, visibility, taxonomy and per-entry switches                          |
+| [Content organization](https://bloggpt.reincarnatey.net/en/content/organization) | Collections, stable URLs and nested folders                                         |
+| [Languages](https://bloggpt.reincarnatey.net/en/content/languages)               | Interface copy and translated content files                                         |
+| [Archetypes](https://bloggpt.reincarnatey.net/en/content/archetypes)             | New-content commands, templates and placeholders                                    |
+| [Extension files](https://bloggpt.reincarnatey.net/en/customization/hooks)       | Global HTML, CSS and client lifecycles                                              |
+| [Deployment](https://bloggpt.reincarnatey.net/en/guide/deployment)               | Domains, subdirectories and build output                                            |
 
 ## Project structure
 
@@ -171,6 +163,6 @@ See [Contributing](CONTRIBUTING.md) for pull requests, translation contributions
 
 ## Credits and license
 
-The layout is inspired by ChatGPT. UI icons use Lucide; social brand icons use Simple Icons. Demo gradients were created with [FeralUI Gradient Builder](https://feralui.dev/gradients); see [demo assets](apps/docs/en/guide/overview.md#demo-site).
+The layout is inspired by ChatGPT. UI icons use Lucide; social brand icons use Simple Icons. Demo gradients were created with [FeralUI Gradient Builder](https://feralui.dev/gradients); see [demo assets](https://bloggpt.reincarnatey.net/en/guide/overview#demo-site).
 
 Theme code is licensed under [Apache-2.0](LICENSE). Documentation uses the [MIT License](apps/docs/LICENSE). Configure the blog content license through the footer settings. See [third-party notices](THIRD_PARTY_NOTICES.md) for font, icon and image sources.
