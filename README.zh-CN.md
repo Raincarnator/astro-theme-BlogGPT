@@ -8,6 +8,8 @@
 
 [查看演示](https://demo.bloggpt.reincarnatey.net) · [使用文档](https://bloggpt.reincarnatey.net/)
 
+> **开始搭建博客：** 先阅读[安装与预览](https://bloggpt.reincarnatey.net/guide/getting-started)，再通过[使用文档](https://bloggpt.reincarnatey.net/)了解配置、写作与部署。
+
 ![BlogGPT 首页：搜索与可调整宽度的侧栏](.github/assets/readme/home.webp)
 
 ## 功能
@@ -103,36 +105,26 @@ pnpm build
 pnpm preview
 ```
 
-推荐将 Git 仓库连接到 **Vercel**，选择 Astro，构建命令使用 `pnpm build`，产物目录填写 `dist`。生产分支的提交会自动构建并发布，完整步骤见 [Vercel 部署教程](apps/docs/guide/deployment.md#vercel-部署-推荐)。其他静态托管服务也可以发布完整 `dist/`。
+推荐将 Git 仓库连接到 **Vercel**，选择 Astro，构建命令使用 `pnpm build`，产物目录填写 `dist`。生产分支的提交会自动构建并发布，完整步骤见 [Vercel 部署教程](https://bloggpt.reincarnatey.net/guide/deployment#vercel-部署-推荐)。其他静态托管服务也可以发布完整 `dist/`。
 
 构建会检查类型、生成页面、复制附件、生成可选分享图并创建搜索索引。`preview` 读取生产产物，修改后需要重新构建；预约文章到达发布时间后也需要再次构建。
 
-界面翻译及注册配置集中在 `src/i18n/`。站点通过 `site.locales` 选择内容语言，缺少对应界面译文时自动回退；社区翻译者添加翻译文件并在 `src/i18n/i18n.config.ts` 注册后，一同贡献到仓库。详见[语言与翻译](apps/docs/content/languages.md)。
+界面翻译及注册配置集中在 `src/i18n/`。站点通过 `site.locales` 选择内容语言，缺少对应界面译文时自动回退；社区翻译者添加翻译文件并在 `src/i18n/i18n.config.ts` 注册后，一同贡献到仓库。详见[语言与翻译](https://bloggpt.reincarnatey.net/content/languages)。
 
 ## 使用文档
 
-```sh
-pnpm docs:dev
-pnpm docs:build
-pnpm docs:preview
-```
+阅读[简体中文文档](https://bloggpt.reincarnatey.net/)或 [English documentation](https://bloggpt.reincarnatey.net/en/)。文档完整介绍安装、配置字段、内容管理和部署方式。
 
-文档位于 apps/docs/，产物为 **apps/docs/.vitepress/dist/**。文档部署到子目录时使用 DOCS_BASE，它与博客的 site.baseUrl 独立。
-
-| 指南                                              | 内容                                               |
-| ------------------------------------------------- | -------------------------------------------------- |
-| [安装与预览](apps/docs/guide/getting-started.md)  | 安装、首次修改和常用命令                           |
-| [完整配置参考](apps/docs/config/reference.md)     | 全部公开字段的类型、必填性、初始值、缺省行为和效果 |
-| [Frontmatter](apps/docs/content/frontmatter.md)   | 日期、封面、可见性、分类标签和逐篇开关             |
-| [内容组织](apps/docs/content/organization.md)     | 内容集合、稳定网址与嵌套文件夹                     |
-| [多语言](apps/docs/content/languages.md)          | 界面文字与正文翻译文件                             |
-| [Archetype 模板](apps/docs/content/archetypes.md) | 新建命令、模板和占位符                             |
-| [扩展文件](apps/docs/customization/hooks.md)      | 全站 HTML、CSS 和客户端生命周期                    |
-| [部署](apps/docs/guide/deployment.md)             | 域名、子目录与构建产物                             |
-
-文档提供[中文](apps/docs/guide/getting-started.md)与[英文](apps/docs/en/guide/getting-started.md)版本。
-
-维护文档站时，可在 Vercel 为同一仓库创建独立项目：Root Directory 保留仓库根目录，Framework Preset 选择 `Other`，Install Command 为 `pnpm install --frozen-lockfile`，Build Command 为 `pnpm docs:build`，Output Directory 为 `apps/docs/.vitepress/dist`。Node.js 选择 `24.x`，在 Production 与 Preview 环境添加 `ENABLE_EXPERIMENTAL_COREPACK=1`；子目录部署再配置 `DOCS_BASE`。向生产分支推送文档修改后自动构建发布。
+| 指南                                                                  | 内容                                               |
+| --------------------------------------------------------------------- | -------------------------------------------------- |
+| [安装与预览](https://bloggpt.reincarnatey.net/guide/getting-started)  | 安装、首次修改和常用命令                           |
+| [完整配置参考](https://bloggpt.reincarnatey.net/config/reference)     | 全部公开字段的类型、必填性、初始值、缺省行为和效果 |
+| [Frontmatter](https://bloggpt.reincarnatey.net/content/frontmatter)   | 日期、封面、可见性、分类标签和逐篇开关             |
+| [内容组织](https://bloggpt.reincarnatey.net/content/organization)     | 内容集合、稳定网址与嵌套文件夹                     |
+| [多语言](https://bloggpt.reincarnatey.net/content/languages)          | 界面文字与正文翻译文件                             |
+| [Archetype 模板](https://bloggpt.reincarnatey.net/content/archetypes) | 新建命令、模板和占位符                             |
+| [扩展文件](https://bloggpt.reincarnatey.net/customization/hooks)      | 全站 HTML、CSS 和客户端生命周期                    |
+| [部署](https://bloggpt.reincarnatey.net/guide/deployment)             | 域名、子目录与构建产物                             |
 
 ## 项目结构
 
@@ -171,6 +163,6 @@ pnpm docs:build
 
 ## 致谢与许可
 
-布局受到 ChatGPT 启发，UI 图标使用 Lucide，社交品牌图标使用 Simple Icons。演示渐变图通过 [FeralUI Gradient Builder](https://feralui.dev/gradients) 创建，具体用途见[演示素材](apps/docs/guide/overview.md#演示站点)。
+布局受到 ChatGPT 启发，UI 图标使用 Lucide，社交品牌图标使用 Simple Icons。演示渐变图通过 [FeralUI Gradient Builder](https://feralui.dev/gradients) 创建，具体用途见[演示素材](https://bloggpt.reincarnatey.net/guide/overview#演示站点)。
 
 主题代码采用 [Apache-2.0](LICENSE)，文档采用 [MIT](apps/docs/LICENSE)，博客内容许可通过页脚设置。字体、图标与图片来源见[第三方资源声明](THIRD_PARTY_NOTICES.md)。
