@@ -42,6 +42,8 @@ Supported placeholders are `[year]`, `[month]` and `[day]`, using publication ti
 
 `site.localePrefixPolicy: 'omit-default-prefix'` omits the default-language segment. Subdirectory deployments prepend the path from `site.baseUrl`. See [language prefix policies](./languages.md#language-prefix-policies).
 
-Paths apply consistently to navigation, canonical URLs, language switching, search, RSS, Sitemap and bundle assets. Default article absolute paths and sibling relative links in bodies resolve to the new addresses, preserving queries and anchors. Adjust URLs in custom HTML/JS as needed.
+Paths apply consistently to theme-generated navigation, canonical URLs, language switching, search, RSS, Sitemap and bundle assets. The theme does not automatically migrate links in article bodies or custom HTML/JS. After changing `posts.pathPrefix`, the language prefix policy or deployment directory, authors must check relative links, images and attachment paths against the final published URLs, especially links across publication years or to standalone pages.
+
+For example, linking from `/zh/posts/2026/hello/` to `/zh/posts/2025/older/` requires `../../2025/older/`; linking to `/zh/about/` requires `../../../about/`. After rendering, the build checks local relative URLs in content (including paths starting with `/`), resources and HTML anchors. Invalid targets produce warnings naming the source page and destination, without failing the build or correcting links. External URLs are not checked over the network.
 
 Path segments use relative directories; the first segment `page` is reserved for pagination. Empty or parent segments, queries, percent encoding and unknown placeholders fail validation. When changing published paths, configure redirects at the host for old addresses.

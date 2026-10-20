@@ -14,7 +14,7 @@ import languages from '../src/i18n/i18n.config.ts';
 import en from '../src/i18n/en.ts';
 import zh from '../src/i18n/zh.ts';
 import config from '../blog.config.ts';
-import { canonicalLocale } from '../src/lib/locale.ts';
+import { canonicalLocale, localeChain } from '../src/lib/locale.ts';
 import {
   contentLocales,
   interfaceMessages,
@@ -225,24 +225,48 @@ test('dated regional routes place bundle downloads beside the rendered article',
   }
 });
 
-test('dated article links preserve sibling destinations, query and fragments without moving attachment URLs', () => {
-  const paths = new Map([
-    ['/blog/pt-BR/posts/start/', '/blog/pt-BR/posts/2026/start/'],
-    ['/blog/pt-BR/posts/older/', '/blog/pt-BR/posts/2024/older/'],
-  ]);
+test('content URLs follow the final page path without migrating author article links', () => {
   const result = contentUrls(
     '<main><div class="article-content"><a href="../older/?q=test#section">Older</a><a href="/blog/pt-BR/posts/older/">Old path</a><a href="#here">Here</a><img src="./cover.webp"><a href="./download.zip">Download</a></div></main>',
     new URL('https://preview.test/blog/pt-BR/posts/2026/start/'),
     new URL('https://example.com'),
-    paths,
   );
-  assert.ok(result.includes('/blog/pt-BR/posts/2024/older/?q=test#section'));
-  assert.ok(result.includes('href="/blog/pt-BR/posts/2024/older/"'));
+  assert.ok(result.includes('/blog/pt-BR/posts/2026/older/?q=test#section'));
+  assert.ok(result.includes('href="/blog/pt-BR/posts/older/"'));
   assert.ok(result.includes('href="#here"'));
   assert.ok(result.includes('src="/blog/pt-BR/posts/2026/start/cover.webp"'));
   assert.ok(
     result.includes('href="/blog/pt-BR/posts/2026/start/download.zip"'),
   );
+});
+
+test('language fallback preserves exact extension packs and uses valid base language parents', () => {
+  for (const [locale, expected] of [
+    ['en-US-u-nu-latn', ['en-US-u-nu-latn', 'en-US', 'en']],
+    ['zh-Hans-CN-x-blog', ['zh-Hans-CN-x-blog', 'zh-Hans-CN', 'zh-Hans', 'zh']],
+    ['en-t-zh-hans-cn', ['en-t-zh-hans-cn', 'en']],
+  ]) {
+    assert.deepEqual(localeChain(locale), expected);
+    assert.doesNotThrow(() => localeInfo(locale));
+    assert.doesNotThrow(() => interfaceMessages(locale, locale));
+    assert.equal(
+      resolveLocalized({ en: 'English', zh: '中文' }, locale, 'en'),
+      locale.startsWith('zh') ? '中文' : 'English',
+    );
+  }
+  languages['en-US-u-nu-latn'] = {
+    label: 'Custom English',
+    messages: { home: 'Custom home' },
+  };
+  try {
+    assert.equal(
+      interfaceMessages('en-US-u-nu-latn', 'zh').home,
+      'Custom home',
+    );
+    assert.equal(localeInfo('en-US-u-nu-latn').label, 'Custom English');
+  } finally {
+    delete languages['en-US-u-nu-latn'];
+  }
 });
 
 test('demo taxonomy is flat, friends are grouped with distinct example avatars, and bundle templates are minimal', async () => {

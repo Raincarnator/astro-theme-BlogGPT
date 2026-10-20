@@ -33,7 +33,9 @@ Policies apply to single- and multilingual sites. Subdirectory deployment prepen
 
 `redirect-to-default` creates entry points for generated HTML pages, using the final address including any date directories. Queries and paragraph anchors are retained when JavaScript is enabled. RSS, JSON, images and attachments use final addresses. Rebuild and replace complete output after changing policy; the host serves pages or 404 according to actual files.
 
-Each language page has its own canonical. `hreflang` links real translations, including versions with different slugs or date directories. Fallback-body pages keep their own canonical; the language menu can open the corresponding available fallback page. Redirect entry points are excluded from Sitemap and search indexes.
+Each language page has its own canonical. `hreflang` links real translations, including articles with different date directories or standalone pages with different slugs. Fallback-body pages keep their own canonical; the language menu can open the corresponding available fallback page. Redirect entry points are excluded from Sitemap and search indexes.
+
+After changing the language prefix policy, authors must check that relative content links still point to the correct final URLs. The theme does not migrate these links automatically; the build warns about invalid local relative URLs. See [Files and URLs](./organization.md).
 
 ## Central interface language packs
 
@@ -96,9 +98,11 @@ content/pages/about/index.en.mdx
 
 Markdown and MDX can be paired. Each version has its own title, description, dates and body, sharing bundle attachments. Categories and tags follow the same rule.
 
+Every version of an article (same directory and base filename, different language suffixes) must use the same `slug`, including draft and hidden versions. A mismatch fails the build. Standalone pages, categories and tags may still use different translated slugs.
+
 ## Missing translations
 
-Bodies are selected in order: requested-language version, unsuffixed version, default-language version, then the first available version in `site.locales`. A notice appears when another language’s body is selected. Publication states such as drafts are applied before selection.
+Bodies are selected in order: requested-language version, unsuffixed version, default-language version, then the first available version in `site.locales`. A notice appears when another language’s body is selected. Publication states such as drafts are applied before selection. Article `hidden` applies per language version: select the version first, then decide whether to hide it from discovery. Hidden versions still build and remain directly accessible; lists do not fall back to another language to make them visible.
 
 Body suffixes match exactly. Include `pt` in the enabled list to use `pt` content. Keep a community pack’s registration when temporarily disabling its language to retain filename suffix recognition.
 

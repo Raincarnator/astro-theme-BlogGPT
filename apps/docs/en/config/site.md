@@ -19,6 +19,8 @@ Set `baseUrl` to the complete production root; for a subdirectory, use `https://
 
 `locales` enables languages and `defaultLocale` sets the default. Single-language sites keep one code. `localePrefixPolicy` sets the prefix policy; see [Languages and translations](../content/languages.md).
 
+After changing the language prefix policy or deployment directory, authors must check that relative content links still point to the correct URLs. The theme does not migrate these links automatically; the build warns about invalid local relative URLs.
+
 ## Author and copy
 
 `author` sets the name, biography, avatar and social links. `text` centralizes the homepage heading, Tab labels, search prompts, 404 copy and footer descriptions. Display copy, including `author.name` and `author.bio`, accepts strings or localized maps.

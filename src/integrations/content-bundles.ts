@@ -10,6 +10,7 @@ import { siteAddress } from '../lib/site-url.ts';
 import { contentKinds, readContentFiles } from '../lib/content-files.ts';
 import {
   assertUniqueSlugs,
+  assertMatchingPostSlugs,
   chooseVariants,
   fileIdentity,
 } from '../lib/content-variants.ts';
@@ -64,6 +65,7 @@ export async function bundleAssets(
           ),
         },
       }));
+    if (kind === 'posts') assertMatchingPostSlugs(entries);
     const visible = entries.filter((entry) => {
       if (dev && config.posts.showDraftsInDev) return true;
       const date =

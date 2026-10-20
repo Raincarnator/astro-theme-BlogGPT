@@ -8,8 +8,15 @@ export function canonicalLocale(locale: string): string {
 }
 
 export function localeChain(locale: string): string[] {
-  const parts = canonicalLocale(locale).split('-');
-  return parts.map((_, index) =>
-    parts.slice(0, parts.length - index).join('-'),
-  );
+  const canonical = canonicalLocale(locale);
+  // Extension/private-use sequences are indivisible, not parent languages.
+  const parts = new Intl.Locale(canonical).baseName.split('-');
+  return [
+    ...new Set([
+      canonical,
+      ...parts.map((_, index) =>
+        parts.slice(0, parts.length - index).join('-'),
+      ),
+    ]),
+  ];
 }

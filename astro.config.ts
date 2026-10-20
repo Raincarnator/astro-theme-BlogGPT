@@ -8,6 +8,7 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import config from './src/lib/config';
 import contentBundles from './src/integrations/content-bundles';
 import localeRoutes from './src/integrations/locale-routes';
+import relativeLinks from './src/integrations/relative-links';
 import { hasLocalePrefix } from './src/lib/locale-routing';
 import remarkMath from 'remark-math';
 import rehypeMath from './src/plugins/rehype-math';
@@ -70,6 +71,7 @@ export default defineConfig({
         return !path.endsWith('/404/') && !path.endsWith('/search/');
       },
     }),
+    relativeLinks(config.site.baseUrl),
   ],
   vite: { plugins: [tailwindcss()] },
 });

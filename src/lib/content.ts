@@ -3,7 +3,11 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import config from './config';
 import type { Locale } from '../types/config';
 import { canDiscover, canRender } from './policy';
-import { chooseVariants, assertUniqueSlugs } from './content-variants';
+import {
+  chooseVariants,
+  assertUniqueSlugs,
+  assertMatchingPostSlugs,
+} from './content-variants';
 import { href } from './i18n';
 import { introPageSlug, introRoutes } from './intro-config';
 
@@ -33,18 +37,17 @@ export async function postsFor(
   lang: Locale,
   includeHidden = false,
 ): Promise<Post[]> {
-  const posts = (await getCollection('posts')).filter((post) =>
-    canRender(post.data, import.meta.env.DEV, config.posts.showDraftsInDev),
+  const posts = assertMatchingPostSlugs(await getCollection('posts')).filter(
+    (post) =>
+      canRender(post.data, import.meta.env.DEV, config.posts.showDraftsInDev),
   );
-  return choose(
-    posts.filter((post) => includeHidden || !post.data.hidden),
-    lang,
-    'posts',
-  ).sort(
-    (a, b) =>
-      Number(b.data.featured) - Number(a.data.featured) ||
-      b.data.date.getTime() - a.data.date.getTime(),
-  );
+  return choose(posts, lang, 'posts')
+    .filter((post) => includeHidden || !post.data.hidden)
+    .sort(
+      (a, b) =>
+        Number(b.data.featured) - Number(a.data.featured) ||
+        b.data.date.getTime() - a.data.date.getTime(),
+    );
 }
 export async function textEntriesFor<K extends 'pages' | TermKind>(
   kind: K,

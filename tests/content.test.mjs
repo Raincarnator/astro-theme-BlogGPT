@@ -15,6 +15,7 @@ import {
   fileIdentity,
   chooseVariants,
   assertUniqueSlugs,
+  assertMatchingPostSlugs,
 } from '../src/lib/content-variants.ts';
 import {
   contentFiles,
@@ -27,6 +28,35 @@ import config from '../blog.config.ts';
 
 const variant = (locale, key = 'group/welcome', slug = 'welcome') => ({
   data: { _key: key, _locale: locale, slug },
+});
+
+test('article translations require one slug even for hidden and unpublished versions', () => {
+  const entries = [variant('zh'), variant('en'), variant(undefined)];
+  assert.equal(assertMatchingPostSlugs(entries), entries);
+  assert.doesNotThrow(() =>
+    assertMatchingPostSlugs([
+      ...entries,
+      variant('en', 'another/article', 'another-slug'),
+    ]),
+  );
+  for (const status of [
+    { hidden: true },
+    { draft: true },
+    { date: new Date('2099-01-01') },
+  ])
+    assert.throws(
+      () =>
+        assertMatchingPostSlugs([
+          entries[0],
+          {
+            data: {
+              ...variant('en', 'group/welcome', 'different').data,
+              ...status,
+            },
+          },
+        ]),
+      /same slug: group\/welcome.*zh: welcome.*en: different/,
+    );
 });
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'bloggpt-content-'));
@@ -133,7 +163,7 @@ test('bundle manifest copies arbitrary resources for the selected locale and int
     await put(
       root,
       `content/${kind}/managed/story/index.en.mdx`,
-      `---\ntitle: English\nslug: translated-story\n${date}---\n`,
+      `---\ntitle: English\nslug: ${kind === 'posts' ? 'story' : 'translated-story'}\n${date}---\n`,
     );
     for (const file of [
       'image.svg',
@@ -195,7 +225,7 @@ test('bundle manifest copies arbitrary resources for the selected locale and int
       ])
         assert.ok(
           assets.has(
-            `${locale}/${kind === 'pages' ? '' : `${kind}/`}${slug}/${file}`,
+            `${locale}/${kind === 'pages' ? '' : `${kind}/`}${kind === 'posts' ? 'story' : slug}/${file}`,
           ),
         );
   assert.ok(assets.has('zh/links/nested/resource.md'));

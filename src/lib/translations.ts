@@ -49,7 +49,7 @@ export function localeInfo(locale: string) {
     dir,
     label:
       definition?.label ??
-      new Intl.DisplayNames([lang], { type: 'language' }).of(lang) ??
+      new Intl.DisplayNames([lang], { type: 'language' }).of(base.baseName) ??
       lang,
   };
 }

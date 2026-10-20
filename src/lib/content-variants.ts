@@ -50,3 +50,19 @@ export function assertUniqueSlugs<T extends { data: { slug: string } }>(
   }
   return entries;
 }
+
+/** Translations of an article share a URL slug, including unpublished versions. */
+export function assertMatchingPostSlugs<
+  T extends { data: { _key: string; _locale?: string; slug: string } },
+>(entries: T[]): T[] {
+  const families = new Map<string, T['data']>();
+  for (const { data } of entries) {
+    const previous = families.get(data._key);
+    if (previous && previous.slug !== data.slug)
+      throw new Error(
+        `Article translations must use the same slug: ${data._key} (${previous._locale || 'unsuffixed'}: ${previous.slug}, ${data._locale || 'unsuffixed'}: ${data.slug}).`,
+      );
+    families.set(data._key, data);
+  }
+  return entries;
+}

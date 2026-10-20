@@ -18,23 +18,23 @@ draft: false
 
 ## 四类内容的通用字段
 
-| 字段          | 类型                          | 是否必填 | 省略时                                           | 用途与填写方式                                                                                                                                   |
-| ------------- | ----------------------------- | -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `title`       | string                        | 是       | 无默认值                                         | 阅读页标题、列表名称、浏览器标题与搜索标题。每个译文填写对应语言的字符串。                                                                       |
-| `slug`        | string                        | 否       | 普通文件取去掉语言后缀的文件名；index 取父目录名 | 稳定网址标识，如 hello 或 notes/hello；不含语言前缀或 posts 前缀。禁止空段、点路径、问号、井号和反斜线。建议显式填写，以便移动文件夹后保留地址。 |
-| `description` | string                        | 否       | 空字符串                                         | 简介，用于摘要、SEO、搜索、分享和统计浮窗。                                                                                                      |
-| `image`       | string                        | 否       | 无封面                                           | 阅读页标题上方封面，文章列表缩略图或分类/标签封面。可为 `/images/a.webp`、内容包 `./a.webp`、完整 HTTPS URL。按需填写。                          |
-| `cover`       | string                        | 否       | 同 image                                         | image 的兼容别名；同时出现时 image 优先。建议新内容统一用 image。                                                                                |
-| `draft`       | boolean                       | 否       | false                                            | 草稿。生产构建不发布；文章在开发时受 showDraftsInDev 控制。                                                                                      |
-| `hidden`      | boolean                       | 否       | false                                            | 对文章表示可直接访问但不出现在发现入口；不是访问权限。其他类型见下方说明。                                                                       |
-| `coverStyle`  | thumbnail / fade / background | 否       | appearance.categoryCoverStyle                    | 分类列表卡片的封面样式。                                                                                                                         |
-| `math`        | boolean                       | 否       | article.math                                     | 启用或关闭公式增强。                                                                                                                             |
-| `mermaid`     | boolean                       | 否       | article.mermaid                                  | 启用或关闭图表增强。                                                                                                                             |
-| `lightbox`    | boolean                       | 否       | article.lightbox                                 | 启用或关闭正文图片灯箱。                                                                                                                         |
-| `callouts`    | boolean                       | 否       | article.callouts                                 | 启用或关闭提示块。                                                                                                                               |
-| `toc`         | boolean                       | 否       | article.toc.enabled                              | 启用或关闭阅读目录。                                                                                                                             |
-| `shareCover`  | boolean                       | 否       | article.shareCover.enabled                       | 启用或关闭 Satori 分享图，不是关闭普通封面或分享按钮。                                                                                           |
-| `display`     | 部分显示设置                  | 否       | 逐项继承 article.display                         | 阅读界面控制，完整字段见下文。                                                                                                                   |
+| 字段          | 类型                          | 是否必填 | 省略时                                           | 用途与填写方式                                                                                                                                                                                           |
+| ------------- | ----------------------------- | -------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`       | string                        | 是       | 无默认值                                         | 阅读页标题、列表名称、浏览器标题与搜索标题。每个译文填写对应语言的字符串。                                                                                                                               |
+| `slug`        | string                        | 否       | 普通文件取去掉语言后缀的文件名；index 取父目录名 | 稳定网址标识，如 hello 或 notes/hello；不含语言前缀或 posts 前缀。禁止空段、点路径、问号、井号和反斜线。建议显式填写，以便移动文件夹后保留地址。同一文章各语言版本的 slug 必须相同，包括草稿和隐藏版本。 |
+| `description` | string                        | 否       | 空字符串                                         | 简介，用于摘要、SEO、搜索、分享和统计浮窗。                                                                                                                                                              |
+| `image`       | string                        | 否       | 无封面                                           | 阅读页标题上方封面，文章列表缩略图或分类/标签封面。可为 `/images/a.webp`、内容包 `./a.webp`、完整 HTTPS URL。按需填写。                                                                                  |
+| `cover`       | string                        | 否       | 同 image                                         | image 的兼容别名；同时出现时 image 优先。建议新内容统一用 image。                                                                                                                                        |
+| `draft`       | boolean                       | 否       | false                                            | 草稿。生产构建不发布；文章在开发时受 showDraftsInDev 控制。                                                                                                                                              |
+| `hidden`      | boolean                       | 否       | false                                            | 对文章表示可直接访问但不出现在发现入口；不是访问权限。其他类型见下方说明。                                                                                                                               |
+| `coverStyle`  | thumbnail / fade / background | 否       | appearance.categoryCoverStyle                    | 分类列表卡片的封面样式。                                                                                                                                                                                 |
+| `math`        | boolean                       | 否       | article.math                                     | 启用或关闭公式增强。                                                                                                                                                                                     |
+| `mermaid`     | boolean                       | 否       | article.mermaid                                  | 启用或关闭图表增强。                                                                                                                                                                                     |
+| `lightbox`    | boolean                       | 否       | article.lightbox                                 | 启用或关闭正文图片灯箱。                                                                                                                                                                                 |
+| `callouts`    | boolean                       | 否       | article.callouts                                 | 启用或关闭提示块。                                                                                                                                                                                       |
+| `toc`         | boolean                       | 否       | article.toc.enabled                              | 启用或关闭阅读目录。                                                                                                                                                                                     |
+| `shareCover`  | boolean                       | 否       | article.shareCover.enabled                       | 启用或关闭 Satori 分享图，不是关闭普通封面或分享按钮。                                                                                                                                                   |
+| `display`     | 部分显示设置                  | 否       | 逐项继承 article.display                         | 阅读界面控制，完整字段见下文。                                                                                                                                                                           |
 
 四类内容均识别通用字段。正文增强用于各类正文，阅读信息与控件用于文章和独立页面。
 
@@ -111,7 +111,7 @@ true 和 false 都会覆盖全局设置。省略才是继承，不能把未填�
 ## 发布状态
 
 - 文章 draft 为 true 或发布日期在未来：生产构建无独立页面，也不进入列表、搜索、RSS 和 Sitemap。开发服务可按 showDraftsInDev 预览，发现入口仍排除未发布内容。
-- 文章 hidden 为 true：保留直接 URL，排除列表、搜索、归档、分类标签文章列表、RSS、Sitemap等发现入口，并标记 noindex。hidden 用于发现入口的可见性，内容仍可通过网址公开访问。
+- 文章 hidden 为 true：按语言版本生效，先选择版本，再从列表、搜索、归档、分类标签文章列表、RSS、Sitemap等发现入口排除，并标记 noindex；不会为了显示在列表中而回退到其他语言。文章仍正常构建，保留直接 URL，内容可通过网址公开访问。
 - pages 的 draft 在生产中排除；hidden 独立页面仍可直接访问并标记 noindex。按需调整相应导航入口。
 - 分类或标签的隐藏定义不出现在定义列表中，但已公开文章引用同一 slug 时仍能形成分类/标签分组。关联文章按各自的发布状态展示。
 
