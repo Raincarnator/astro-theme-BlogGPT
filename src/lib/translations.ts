@@ -54,7 +54,7 @@ export function localeInfo(locale: string) {
   };
 }
 
-/** Enabled content languages need no UI pack; registered suffixes remain recognizable when disabled. */
+/** Known locale spellings; file identity also recognizes unregistered BCP 47 suffixes. */
 export function contentLocales(enabled: readonly string[]): string[] {
   return [
     ...new Set(

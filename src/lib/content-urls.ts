@@ -10,7 +10,11 @@ const urlAttributes = new Set([
   'cite',
 ]);
 function resolve(value: string, page: URL): string {
-  if (!value || /^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(value)) return value;
+  // URL parsing ignores leading/trailing C0 controls and ASCII spaces.
+  // eslint-disable-next-line no-control-regex
+  const normalized = value.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '');
+  if (!normalized || /^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(normalized))
+    return value;
   const url = new URL(value, page);
   return `${url.pathname}${url.search}${url.hash}`;
 }

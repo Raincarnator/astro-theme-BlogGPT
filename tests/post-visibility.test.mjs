@@ -59,6 +59,11 @@ export default config;`,
       path.join(bundle, 'index.zh.md'),
       '---\ntitle: TEST-PUBLIC-ZH\nslug: test-visibility\ndate: 2026-01-01\ntags: [visibility-check]\n---\n[Invalid sibling](../missing-article/)\n',
     );
+    // Japanese has no UI pack and is disabled, but remains part of this family.
+    await writeFile(
+      path.join(bundle, 'index.ja.md'),
+      '---\ntitle: TEST-DISABLED-JA\nslug: test-visibility\ndate: 2026-01-01\n---\nDisabled Japanese body.\n',
+    );
     await writeFile(path.join(bundle, 'download.txt'), 'Published attachment');
     const build = () =>
       new Promise((resolve, reject) => {
@@ -88,6 +93,7 @@ export default config;`,
       /Invalid relative URL in \/posts\/2026\/test-visibility\/.*missing-article/,
     );
     const output = (file) => readFile(path.join(root, 'dist', file), 'utf8');
+    await assert.rejects(access(path.join(root, 'dist/ja')));
     const en = await output('en/posts/2026/test-visibility/index.html');
     assert.match(en, /TEST-HIDDEN-EN/);
     assert.match(en, /noindex,nofollow/);
@@ -97,6 +103,7 @@ export default config;`,
     );
     const zh = await output('posts/2026/test-visibility/index.html');
     assert.match(zh, /data-search-record="posts"/);
+    assert.doesNotMatch(en + zh, /TEST-DISABLED-JA/);
     assert.match(zh, /href="\/posts\/2026\/missing-article\/"/);
     assert.match(await output('posts/index.html'), /TEST-PUBLIC-ZH/);
     // Check all English generated HTML, including pagination, sidebar, taxonomy,

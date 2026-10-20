@@ -151,6 +151,44 @@ test('all four collections discover nested standalone files and treat index subt
   }
 });
 
+test('disabled unregistered locales retain their family and bundle boundaries in every collection', async (t) => {
+  const root = await fixture(t);
+  const enabled = ['en'];
+  for (const suffix of ['ja', 'pt-BR', 'en-US-u-nu-latn', 'iw']) {
+    const file = `nested/index.${suffix}.mdx`;
+    const identity = fileIdentity(file, enabled);
+    assert.deepEqual(identity, fileIdentity(file, [...enabled, suffix]));
+    assert.equal(identity.key, 'nested/index');
+    assert.equal(identity.bundle, true);
+  }
+  assert.equal(fileIdentity('hello.iw.md', enabled).locale, 'he');
+  assert.deepEqual(fileIdentity('hello.v2.md', enabled), {
+    key: 'hello.v2',
+    locale: undefined,
+    bundle: false,
+  });
+  const entries = ['hello.en.md', 'hello.ja.md', 'only-ja.ja.md'].map(
+    (file) => {
+      const identity = fileIdentity(file, enabled);
+      return variant(identity.locale, identity.key);
+    },
+  );
+  assert.deepEqual(chooseVariants(entries, 'en', 'en', enabled), [entries[0]]);
+  assert.deepEqual(chooseVariants(entries, 'ja', 'en', ['en', 'ja']), [
+    entries[1],
+    entries[2],
+  ]);
+  for (const kind of contentKinds) {
+    const base = `content/${kind}`;
+    await put(root, `${base}/only-ja/index.ja.md`);
+    await put(root, `${base}/only-ja/attachment.md`);
+    await put(root, `${base}/only-ja/nested/index.en.mdx`);
+    assert.deepEqual(await contentFiles(path.join(root, base), enabled), [
+      'only-ja/index.ja.md',
+    ]);
+  }
+});
+
 test('bundle manifest copies arbitrary resources for the selected locale and introduction mount, never standalone siblings or unpublished bundles', async (t) => {
   const root = await fixture(t);
   for (const kind of contentKinds) {
@@ -366,4 +404,28 @@ test('content links only mark external HTTP URLs, comparing the configured site 
   assert.equal((result.match(/data-external/g) ?? []).length, 2);
   assert.ok(result.includes('href="https://example.com/zh/">'));
   assert.ok(result.includes('href="mailto:demo@example.com">'));
+});
+
+test('URL classification ignores surrounding ASCII whitespace without changing absolute targets', async () => {
+  const { contentUrls } = await import('../src/lib/content-urls.ts');
+  const attributes = [
+    'href=" https://external.test/docs "',
+    'href="\t//external.test/docs\n"',
+    'src="\nhttps://cdn.test/a.png\n"',
+    'href=" mailto:demo@example.com "',
+    'href=" #heading "',
+    'href=" /root/path "',
+    'src=" data:image/png;base64,AA== "',
+    'href="   "',
+  ];
+  const result = contentUrls(
+    `<main><div class="article-content">${attributes.map((attribute) => `<${attribute.startsWith('src') ? 'img' : 'a'} ${attribute}>`).join('')}<a href=" \t./download.zip?x=1&amp;y=2\n ">download</a></div></main>`,
+    new URL('https://example.com/blog/en/posts/story/'),
+  );
+  for (const attribute of attributes)
+    assert.ok(result.includes(attribute), attribute);
+  assert.equal((result.match(/data-external/g) ?? []).length, 2);
+  assert.ok(
+    result.includes('href="/blog/en/posts/story/download.zip?x=1&amp;y=2"'),
+  );
 });

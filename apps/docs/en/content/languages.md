@@ -104,7 +104,7 @@ Every version of an article (same directory and base filename, different languag
 
 Bodies are selected in order: requested-language version, unsuffixed version, default-language version, then the first available version in `site.locales`. A notice appears when another language’s body is selected. Publication states such as drafts are applied before selection. Article `hidden` applies per language version: select the version first, then decide whether to hide it from discovery. Hidden versions still build and remain directly accessible; lists do not fall back to another language to make them visible.
 
-Body suffixes match exactly. Include `pt` in the enabled list to use `pt` content. Keep a community pack’s registration when temporarily disabling its language to retain filename suffix recognition.
+Body suffixes match exactly. Include `pt` in the enabled list to use `pt` content. Valid BCP 47 filename suffixes are always recognized as language variants, independently of enabled locales or UI pack registration. After disabling `ja`, `hello.ja.md` remains the Japanese version of `hello`, but is excluded from content selection and build output. A valid language tag after the final dot in a filename is reserved for this purpose.
 
 ## Search and feeds
 

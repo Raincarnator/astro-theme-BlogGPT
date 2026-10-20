@@ -1,11 +1,21 @@
+import { canonicalLocale } from './locale.ts';
+
 /** A content family is identified by its directory and filename, not its URL slug. */
 export function fileIdentity(file: string, locales: readonly string[]) {
   const stem = file.replace(/\\/g, '/').replace(/\.(md|mdx)$/i, '');
   const match = stem.match(/\.([^./]+)$/);
-  const locale = match
+  let locale = match
     ? locales.find((locale) => locale.toLowerCase() === match[1].toLowerCase())
     : undefined;
-  const key = locale ? stem.slice(0, -(locale.length + 1)) : stem;
+  if (match) {
+    try {
+      // Disabling a locale must not turn its translations into neutral content.
+      locale = canonicalLocale(locale ?? match[1]);
+    } catch {
+      // Dotted filenames with non-locale suffixes retain their entire stem.
+    }
+  }
+  const key = locale && match ? stem.slice(0, -(match[1].length + 1)) : stem;
   return { key, locale, bundle: key.split('/').at(-1) === 'index' };
 }
 
