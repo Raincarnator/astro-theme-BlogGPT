@@ -11,18 +11,24 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { pathToFileURL } from 'node:url';
+import { EventEmitter } from 'node:events';
+import { Writable } from 'node:stream';
+import { finished } from 'node:stream/promises';
 import {
   fileIdentity,
   chooseVariants,
   assertUniqueSlugs,
-  assertMatchingPostSlugs,
+  assertMatchingSlugs,
 } from '../src/lib/content-variants.ts';
 import {
   contentFiles,
   contentKinds,
   frontmatter,
 } from '../src/lib/content-files.ts';
-import { bundleAssets } from '../src/integrations/content-bundles.ts';
+import contentBundles, {
+  bundleAssets,
+} from '../src/integrations/content-bundles.ts';
 import { createContent } from '../scripts/new.mjs';
 import config from '../blog.config.ts';
 
@@ -30,11 +36,11 @@ const variant = (locale, key = 'group/welcome', slug = 'welcome') => ({
   data: { _key: key, _locale: locale, slug },
 });
 
-test('article translations require one slug even for hidden and unpublished versions', () => {
+test('all content translations require one slug even for hidden and unpublished versions', () => {
   const entries = [variant('zh'), variant('en'), variant(undefined)];
-  assert.equal(assertMatchingPostSlugs(entries), entries);
+  assert.equal(assertMatchingSlugs(entries), entries);
   assert.doesNotThrow(() =>
-    assertMatchingPostSlugs([
+    assertMatchingSlugs([
       ...entries,
       variant('en', 'another/article', 'another-slug'),
     ]),
@@ -46,7 +52,7 @@ test('article translations require one slug even for hidden and unpublished vers
   ])
     assert.throws(
       () =>
-        assertMatchingPostSlugs([
+        assertMatchingSlugs([
           entries[0],
           {
             data: {
@@ -55,8 +61,34 @@ test('article translations require one slug even for hidden and unpublished vers
             },
           },
         ]),
-      /same slug: group\/welcome.*zh: welcome.*en: different/,
+      /same slug: group\/welcome.*zh.*welcome.*en.*different/,
     );
+});
+
+test('translation mismatch warnings identify both files in each collection, including disabled neutral and draft versions', () => {
+  for (const kind of contentKinds)
+    for (const locale of [undefined, 'en', 'ja']) {
+      const first = { id: `content/${kind}/entry.zh.md`, ...variant('zh') };
+      const second = {
+        id: `content/${kind}/entry${locale ? `.${locale}` : ''}.mdx`,
+        data: {
+          ...variant(locale, 'group/welcome', 'different').data,
+          draft: true,
+          hidden: true,
+        },
+      };
+      const warnings = [];
+      assert.throws(
+        () =>
+          assertMatchingSlugs([first, second], (message) =>
+            warnings.push(message),
+          ),
+        /Content translations must use the same slug/,
+      );
+      assert.equal(warnings.length, 1);
+      assert.ok(warnings[0].includes(first.id));
+      assert.ok(warnings[0].includes(second.id));
+    }
 });
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'bloggpt-content-'));
@@ -69,6 +101,74 @@ async function put(root, file, content = 'attachment') {
   await writeFile(target, content);
   return target;
 }
+
+test('development bundle middleware serves JavaScript modules with an executable MIME type', async (t) => {
+  const root = await fixture(t);
+  await put(
+    root,
+    'content/posts/modules/index.en.md',
+    '---\ntitle: Modules\nslug: modules\ndate: 2026-01-01\n---\n',
+  );
+  const body = 'export const answer = 42;\n';
+  for (const name of ['demo.mjs', 'upper.MJS', 'legacy.js', 'unknown.bin'])
+    await put(root, `content/posts/modules/${name}`, body);
+  const settings = structuredClone(config);
+  settings.site.baseUrl = 'https://example.com/blog/';
+  const integration = contentBundles(settings);
+  await integration.hooks['astro:config:done']({
+    config: { root: pathToFileURL(root + path.sep) },
+  });
+  const watcher = new EventEmitter();
+  const httpServer = new EventEmitter();
+  t.after(() => httpServer.emit('close'));
+  let middleware;
+  await integration.hooks['astro:server:setup']({
+    server: {
+      watcher,
+      httpServer,
+      middlewares: {
+        use(handler) {
+          middleware = handler;
+        },
+      },
+    },
+  });
+  async function request(name, method) {
+    const chunks = [];
+    const headers = new Map();
+    const response = new Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk);
+        callback();
+      },
+    });
+    response.setHeader = (name, value) => headers.set(name, value);
+    const completion = finished(response);
+    await middleware(
+      { url: `/blog/en/posts/modules/${name}`, method },
+      response,
+      (error) =>
+        response.destroy(
+          error ?? new Error('Unexpected middleware fallthrough'),
+        ),
+    );
+    await completion;
+    return { headers, body: Buffer.concat(chunks).toString() };
+  }
+  for (const name of ['demo.mjs', 'upper.MJS', 'legacy.js']) {
+    const result = await request(name, 'HEAD');
+    assert.equal(
+      result.headers.get('Content-Type'),
+      'text/javascript; charset=utf-8',
+    );
+    assert.equal(result.body, '');
+  }
+  assert.equal((await request('demo.mjs', 'GET')).body, body);
+  assert.equal(
+    (await request('unknown.bin', 'HEAD')).headers.get('Content-Type'),
+    'application/octet-stream',
+  );
+});
 
 test('filename variants follow exact, neutral, default, then configured language order', () => {
   const exact = variant('en'),
@@ -201,7 +301,7 @@ test('bundle manifest copies arbitrary resources for the selected locale and int
     await put(
       root,
       `content/${kind}/managed/story/index.en.mdx`,
-      `---\ntitle: English\nslug: ${kind === 'posts' ? 'story' : 'translated-story'}\n${date}---\n`,
+      `---\ntitle: English\nslug: story\n${date}---\n`,
     );
     for (const file of [
       'image.svg',
@@ -251,7 +351,7 @@ test('bundle manifest copies arbitrary resources for the selected locale and int
   for (const kind of contentKinds)
     for (const [locale, slug] of [
       ['zh', 'story'],
-      ['en', 'translated-story'],
+      ['en', 'story'],
     ])
       for (const file of [
         'image.svg',
@@ -283,6 +383,48 @@ test('bundle manifest copies arbitrary resources for the selected locale and int
   );
   await put(root, 'content/posts/managed/story/index.html');
   await assert.rejects(bundleAssets(root, custom), /overwrite/);
+});
+
+test('merged draft flags exclude attachments in all collections while allowing development preview', async (t) => {
+  const root = await fixture(t);
+  for (const kind of contentKinds) {
+    await put(
+      root,
+      `content/${kind}/merged/index.en.md`,
+      '---\ndefaults: &defaults\n  draft: true\n<<: *defaults\ntitle: Merged draft\nslug: merged\ndate: 2026-01-01\n---\n',
+    );
+    await put(root, `content/${kind}/merged/private.txt`);
+  }
+  assert.equal((await bundleAssets(root, config)).size, 0);
+  const preview = structuredClone(config);
+  preview.posts.showDraftsInDev = false;
+  assert.equal((await bundleAssets(root, preview, true)).size, 0);
+  preview.posts.showDraftsInDev = true;
+  const assets = await bundleAssets(root, preview, true);
+  for (const kind of contentKinds)
+    assert.ok(
+      assets.has(`en/${kind === 'pages' ? '' : `${kind}/`}merged/private.txt`),
+    );
+});
+
+test('bundle routes parse publication aliases consistently with offset dates', async (t) => {
+  const root = await fixture(t);
+  const custom = structuredClone(config);
+  custom.posts.pathPrefix = '[year]/[month]/[day]/';
+  custom.site.timezone = 'UTC';
+  for (const field of ['date', 'published', 'pubDatetime']) {
+    await put(
+      root,
+      `content/posts/${field}/index.en.mdx`,
+      `---\ntitle: Date\nslug: ${field.toLowerCase()}\n${field}: 2025-12-31T23:30:00-02:00\n---\n`,
+    );
+    await put(root, `content/posts/${field}/download.txt`);
+  }
+  const assets = await bundleAssets(root, custom);
+  for (const field of ['date', 'published', 'pubDatetime'])
+    assert.ok(
+      assets.has(`en/posts/2026/01/01/${field.toLowerCase()}/download.txt`),
+    );
 });
 
 test('archetypes create all four default and named bundles, replace paths/text, preserve binary bytes, and preflight conflicts', async (t) => {
@@ -319,15 +461,22 @@ test('archetypes create all four default and named bundles, replace paths/text, 
     'archetypes/pages/custom/[slug]/[year]/index.[template].mdx',
     '{{ slug }} {{ type }} {{ template }} {{ date }} {{ datetime }} {{ timestamp }}',
   );
-  await createContent(root, 'pages', "reader's-notes", 'default');
+  await createContent(
+    root,
+    'pages',
+    'readers-notes',
+    'default',
+    new Date(),
+    "Reader's notes",
+  );
   assert.equal(
     frontmatter(
       await readFile(
-        path.join(root, "content/pages/reader's-notes.mdx"),
+        path.join(root, 'content/pages/readers-notes.mdx'),
         'utf8',
       ),
     ).slug,
-    "reader's-notes",
+    'readers-notes',
   );
   const binary = Buffer.from([0, 255, 128, 42]);
   await put(root, 'archetypes/pages/custom/[slug]/raw.zip', binary);
@@ -357,7 +506,18 @@ test('archetypes create all four default and named bundles, replace paths/text, 
     /overwrite/,
   );
   await assert.rejects(access(path.join(root, 'content/pages/a.mdx')));
-  await assert.rejects(createContent(root, 'pages', '../escape'), /traversal/);
+  for (const slug of [
+    '../escape',
+    'notes/hello',
+    '中文',
+    'review%25',
+    "reader's-notes",
+    'ReviewCase',
+    '-post-',
+    '-123',
+    '-',
+  ])
+    await assert.rejects(createContent(root, 'pages', slug), /Invalid slug/);
   await assert.rejects(
     createContent(root, 'pages', 'x', '../escape'),
     /Template name/,
@@ -428,4 +588,41 @@ test('URL classification ignores surrounding ASCII whitespace without changing a
   assert.ok(
     result.includes('href="/blog/en/posts/story/download.zip?x=1&amp;y=2"'),
   );
+});
+
+test('srcset resolves every multiline candidate and preserves remote URLs and descriptors', async () => {
+  const { contentUrls } = await import('../src/lib/content-urls.ts');
+  const { srcsetCandidates, trimUrl } =
+    await import('../src/lib/url-values.ts');
+  const value =
+    '\n ./small.png .5x,\n\t./large.png 2x, https://cdn.test/remote.png 3x, data:image/png;base64,AA== 4x, ./wide.png 1200w\n';
+  const candidates = srcsetCandidates(value);
+  assert.deepEqual(
+    candidates.map(({ url }) => url),
+    [
+      './small.png',
+      './large.png',
+      'https://cdn.test/remote.png',
+      'data:image/png;base64,AA==',
+      './wide.png',
+    ],
+  );
+  const result = contentUrls(
+    `<main><img srcset="${value}"></main>`,
+    new URL('https://example.com/blog/posts/story/'),
+  );
+  assert.ok(
+    result.includes(
+      'srcset="\n /blog/posts/story/small.png .5x,\n\t/blog/posts/story/large.png 2x, https://cdn.test/remote.png 3x, data:image/png;base64,AA== 4x, /blog/posts/story/wide.png 1200w\n"',
+    ),
+  );
+  assert.deepEqual(
+    srcsetCandidates(' ./one.png, ./two.png, ').map(({ url }) => url),
+    ['./one.png', './two.png'],
+  );
+  assert.equal(
+    trimUrl('\t https://cdn.test/a.png \n'),
+    'https://cdn.test/a.png',
+  );
+  assert.equal(trimUrl('\u00a0./image.png\u00a0'), '\u00a0./image.png\u00a0');
 });

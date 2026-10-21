@@ -76,6 +76,7 @@ function setup() {
     async () => {
       try {
         await navigator.clipboard.writeText(root.dataset.shareText ?? '');
+        if (signal.aborted) return;
         clearTimeout(copiedTimer);
         animateLabel(root.dataset.shareCopied ?? 'Copied');
         copiedTimer = setTimeout(
@@ -83,6 +84,7 @@ function setup() {
           2000,
         );
       } catch {
+        if (signal.aborted) return;
         show();
         const input = panel.querySelector<HTMLInputElement>('input')!;
         input.value = root.dataset.shareText ?? input.value;
@@ -143,8 +145,10 @@ function setup() {
       const message = panel.querySelector<HTMLElement>('[data-share-message]')!;
       try {
         await navigator.clipboard.writeText(input.value);
+        if (signal.aborted) return;
         message.textContent = ui.linkCopied;
       } catch {
+        if (signal.aborted) return;
         input.focus();
         input.select();
         message.textContent = ui.manualLinkCopy;
@@ -161,7 +165,5 @@ function setup() {
     { once: true },
   );
 }
-document.addEventListener('astro:before-preparation', () =>
-  controller?.abort(),
-);
+document.addEventListener('astro:before-swap', () => controller?.abort());
 document.addEventListener('astro:page-load', setup);

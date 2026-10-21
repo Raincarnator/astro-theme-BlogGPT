@@ -18,6 +18,10 @@ An article’s `categories: [guide]` refers to this slug. Tags follow the same p
 
 Defined categories can appear on their own. When an article refers to an undefined category, the theme uses its slug as the group name.
 
+Setting `hidden: true` on a category or tag definition applies per language version: its detail page still builds and remains directly accessible, but stays out of public lists, tag clouds, search and Sitemap. The detail page lists only public articles and remains available as an empty page when no articles reference it.
+
+Categories and tags referenced only by hidden articles retain directly accessible detail pages, but stay out of public lists, tag clouds, search and Sitemap, and list no articles. This follows the article version selected for the current language. Groups also referenced by public articles list only those public articles.
+
 ## Standalone pages
 
 For example, write an About page in `content/pages/about/index.zh.mdx` and configure navigation:

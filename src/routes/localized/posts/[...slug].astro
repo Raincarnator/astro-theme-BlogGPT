@@ -19,7 +19,8 @@ import {
 } from '../../../lib/content';
 import { canDiscover } from '../../../lib/policy';
 import { isRealTranslation } from '../../../lib/locale-routing';
-import { t, href, withBase } from '../../../lib/i18n';
+import { t, href } from '../../../lib/i18n';
+import { contentImage } from '../../../lib/content-image';
 import type { Locale } from '../../../types/config';
 export async function getStaticPaths({
   routePattern,
@@ -73,13 +74,7 @@ for (const locale of config.site.locales) {
       translationPaths[locale] = postHref(translated, locale);
   }
 }
-const cover = post.data.image
-  ? /^https?:/.test(post.data.image)
-    ? post.data.image
-    : post.data.image.startsWith('/')
-      ? withBase(post.data.image)
-      : post.data.image
-  : undefined;
+const cover = contentImage(post.data.image, postHref(post, lang));
 const shareImage = features.shareCover
   ? href(lang, `og/${encodedSlug(post.data.slug)}.png`)
   : cover

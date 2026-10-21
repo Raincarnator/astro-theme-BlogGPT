@@ -3,10 +3,22 @@ import { z } from 'astro/zod';
 import { glob, type Loader } from 'astro/loaders';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 import config from './lib/config';
-import { safeSlug } from './lib/policy';
-import { contentFiles, type ContentKind } from './lib/content-files';
-import { fileIdentity } from './lib/content-variants';
+import { safeSlug, validateContentSlugs } from './lib/policy';
+import {
+  contentFiles,
+  frontmatter,
+  type ContentKind,
+} from './lib/content-files';
+import {
+  dateFields,
+  dateRule,
+  validContentDate,
+  parseContentDate,
+  validateContentDates,
+} from './lib/content-dates';
+import { fileIdentity, assertMatchingSlugs } from './lib/content-variants';
 import { contentLocales } from './lib/translations';
 import { canonicalLocale } from './lib/locale';
 const supportedLocales = contentLocales(config.site.locales);
@@ -20,12 +32,36 @@ function loader(kind: ContentKind): Loader {
       );
       const sync = async () => {
         const files = await contentFiles(base, supportedLocales);
+        // Astro's YAML parser coerces unquoted ISO dates into Date objects.
+        // Read the original scalar types before that coercion can hide bad input.
+        const sources = new Map(
+          await Promise.all(
+            files.map(
+              async (file) =>
+                [
+                  file,
+                  frontmatter(await readFile(path.join(base, file), 'utf8')),
+                ] as const,
+            ),
+          ),
+        );
+        for (const [file, data] of sources)
+          validateContentDates(data, `content/${kind}/${file}`, (message) =>
+            context.logger.warn(message),
+          );
+        const variants: {
+          id: string;
+          data: { _key: string; _locale?: string; slug: string };
+        }[] = [];
         await glob({
           base: `./content/${kind}`,
           pattern: files.length
             ? files.map((file) => file.replace(/[()[\]{}*?!]/g, '\\$&'))
             : '__empty_collection__',
           generateId: ({ entry, data }) => {
+            const source = sources.get(entry)!;
+            for (const field of dateFields)
+              if (Object.hasOwn(source, field)) data[field] = source[field];
             const identity = fileIdentity(entry, supportedLocales);
             data._key = identity.key;
             data._locale = identity.locale;
@@ -33,10 +69,27 @@ function loader(kind: ContentKind): Loader {
             data.slug ??= identity.bundle
               ? path.posix.basename(path.posix.dirname(identity.key))
               : path.posix.basename(identity.key);
+            validateContentSlugs(
+              data,
+              `content/${kind}/${entry}`,
+              (message) => context.logger.warn(message),
+              kind === 'posts',
+            );
+            variants.push({
+              id: `content/${kind}/${entry}`,
+              data: {
+                _key: identity.key,
+                _locale: identity.locale,
+                slug: data.slug as string,
+              },
+            });
             data.image ??= data.cover;
             return entry;
           },
         }).load({ ...context, watcher: undefined });
+        assertMatchingSlugs(variants, (message) =>
+          context.logger.warn(message),
+        );
       };
       await sync();
       if (context.watcher) {
@@ -73,6 +126,11 @@ const list = z
   .union([z.string(), z.array(z.string())])
   .optional()
   .transform((value) => (typeof value === 'string' ? [value] : (value ?? [])));
+const date = z
+  .string()
+  .refine(validContentDate, dateRule)
+  .transform(parseContentDate)
+  .optional();
 const common = z.object({
   title: z.string(),
   description: z.string().default(''),
@@ -107,12 +165,12 @@ const posts = defineCollection({
   loader: loader('posts'),
   schema: common
     .extend({
-      date: z.coerce.date().optional(),
-      published: z.coerce.date().optional(),
-      pubDatetime: z.coerce.date().optional(),
-      updated: z.coerce.date().optional(),
-      modDatetime: z.coerce.date().optional(),
-      lastmod: z.coerce.date().optional(),
+      date,
+      published: date,
+      pubDatetime: date,
+      updated: date,
+      modDatetime: date,
+      lastmod: date,
       category: list,
       categories: list,
       tags: list,
@@ -129,19 +187,19 @@ const posts = defineCollection({
       categories: [...new Set([...value.category, ...value.categories])].map(
         safeSlug,
       ),
-      tags: value.tags.map(safeSlug),
+      tags: [...new Set(value.tags)].map(safeSlug),
     })),
 });
 const pages = defineCollection({
   loader: loader('pages'),
   schema: common
     .extend({
-      date: z.coerce.date().optional(),
-      published: z.coerce.date().optional(),
-      pubDatetime: z.coerce.date().optional(),
-      updated: z.coerce.date().optional(),
-      modDatetime: z.coerce.date().optional(),
-      lastmod: z.coerce.date().optional(),
+      date,
+      published: date,
+      pubDatetime: date,
+      updated: date,
+      modDatetime: date,
+      lastmod: date,
     })
     .transform((value) => ({
       ...value,

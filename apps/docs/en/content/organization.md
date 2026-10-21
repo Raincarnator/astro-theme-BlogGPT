@@ -13,7 +13,7 @@ All four support `.md`, `.mdx` and nested management directories.
 
 ## Files and slugs
 
-When `slug` is omitted, a standalone file uses its filename without the language suffix; an index entry uses its containing folder’s name. An explicit slug preserves the address when moving management folders. For example:
+When `slug` is omitted, a standalone file uses its filename without the language suffix; an index entry uses its containing folder’s name. Slugs for all content types, including category and tag references in articles, must start with a lowercase ASCII letter or digit and contain only lowercase ASCII letters, digits and hyphens (-). All language versions of a file must share a slug, including unsuffixed, draft, hidden and disabled-language versions. Invalid or mismatched values warn with source files and stop the build. An explicit slug preserves the address when moving management folders. For example:
 
 ```text
 content/posts/notes/2026/hello.zh.md
@@ -27,6 +27,8 @@ A standalone file holds one entry. For attachments, use `index.md`, `index.mdx` 
 
 Standalone pages can use `content/pages/[slug]/index.[lang].md` or `.mdx`. Categories and tags may live directly under their respective directories or in additional management folders.
 
+`404` is reserved for the built-in error page and cannot be a standalone page slug. Using it stops the build.
+
 ## Article path segments
 
 The default article path is `/[lang]/posts/[slug]/`. `posts.pathPrefix` adds directories between posts and the slug:
@@ -38,7 +40,7 @@ The default article path is `/[lang]/posts/[slug]/`. `posts.pathPrefix` adds dir
 | `'[year]/[month]/'` | `/zh/posts/2026/07/hello/`    |
 | `'notes/[year]/'`   | `/zh/posts/notes/2026/hello/` |
 
-Supported placeholders are `[year]`, `[month]` and `[day]`, using publication time in `site.timezone`. Month and day are zero-padded. A trailing `/` is recommended. The slug stays last and can include subpaths.
+Supported placeholders are `[year]`, `[month]` and `[day]`, using publication time in `site.timezone`. Month and day are zero-padded. A trailing `/` is recommended. The slug stays last and cannot contain slashes; use `posts.pathPrefix` for additional URL directories.
 
 `site.localePrefixPolicy: 'omit-default-prefix'` omits the default-language segment. Subdirectory deployments prepend the path from `site.baseUrl`. See [language prefix policies](./languages.md#language-prefix-policies).
 

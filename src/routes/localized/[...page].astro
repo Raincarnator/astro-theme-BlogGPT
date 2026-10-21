@@ -27,7 +27,7 @@ export async function getStaticPaths({
       if (isIntroOnly(page.data.slug)) continue;
       if (isReservedPage(page.data.slug))
         throw new Error(
-          `Reserved page slug: ${page.data.slug}. Bind it to the matching builtin navigation item with page, or choose another slug.`,
+          `Reserved page slug: ${page.data.slug}. Choose another slug for this standalone page (${page.id}).`,
         );
       if (config.site.locales.includes(page.data.slug.split('/')[0]))
         throw new Error(

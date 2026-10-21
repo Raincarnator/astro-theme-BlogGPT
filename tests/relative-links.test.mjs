@@ -29,6 +29,7 @@ test('build checks final relative content destinations, resources and anchors un
   await put('zh/posts/2026/start/cover.webp');
   await put('zh/posts/2026/start/big.webp');
   await put('zh/posts/2026/start/download.zip');
+  await put('zh/posts/2026/start/demo.mjs', 'export const answer = 42;');
   await put('zh/posts/2026/start/demo.html', '<p id="demo">Attachment</p>');
   const html = `<main><a href="missing-ui/">UI excluded</a><div class="article-content">
     <h2 id="here">Section</h2>
@@ -46,10 +47,14 @@ test('build checks final relative content destinations, resources and anchors un
     <a href="//cdn.invalid/missing">Remote</a><img src="data:image/png;base64,AA==">
     <a href="mailto:hello@example.com">Mail</a>
     <script>const example = '<a href="script-missing/">';</script>
+    <script type="module" src="./demo.mjs"></script>
+    <script type="module" src="./missing-module.mjs"></script>
+    <form action="../../../about/"></form><form action="./missing-action/"></form>
     <template><a href="template-missing/">Template</a></template>
     <a href="../older/">Wrong year</a><a href="../../about/">Wrong page</a>
     <a href="#missing">Missing local anchor</a><a href="../../../about/#missing">Missing page anchor</a>
-    <img src="./missing.webp"><img srcset="./cover.webp 1x, ./missing-large.webp 2x">
+    <img src="./missing.webp"><img srcset="\n ./cover.webp 1x, ./missing-large.webp 2x">
+    <source srcset="\n ./missing-first.webp .5x,\n ./big.webp 2x">
     <a href="/zh/about/">Missing base</a><a href="./%ZZ">Malformed</a>
   </div></main>`;
   const page = new URL('https://example.com/blog/zh/posts/2026/start/');
@@ -60,7 +65,16 @@ test('build checks final relative content destinations, resources and anchors un
       root,
       'https://example.com/blog/',
     );
-    assert.equal(warnings.length, 8);
+    assert.equal(warnings.length, 11);
+    for (const destination of ['missing-module.mjs', 'missing-action/'])
+      assert.ok(
+        warnings.some((warning) => warning.reference.includes(destination)),
+      );
+    assert.ok(
+      warnings.some((warning) =>
+        warning.reference.includes('missing-first.webp'),
+      ),
+    );
     assert.ok(warnings.every((warning) => warning.page === page.pathname));
     assert.ok(
       warnings.some((warning) => warning.reason.endsWith('/2026/older/')),
@@ -84,6 +98,6 @@ test('build checks final relative content destinations, resources and anchors un
     dir: pathToFileURL(`${root}${path.sep}`),
     logger: { warn: (message) => logged.push(message) },
   });
-  assert.equal(logged.length, 8);
+  assert.equal(logged.length, 11);
   assert.ok(logged.every((message) => message.includes(page.pathname)));
 });

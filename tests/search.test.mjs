@@ -103,6 +103,127 @@ test('cached Pagefind modules create fresh instances after locale navigation and
   en.abort();
 });
 
+test('failed Pagefind imports retry with fresh URLs, share in-flight work and cache successful instances', async () => {
+  const controller = new AbortController();
+  const imports = [];
+  const modules = new Map();
+  const instance = {
+    init: async () => {},
+    destroy: async () => {},
+    search: async () => ({ results: [] }),
+  };
+  const load = (url) => {
+    // Model the browser module map: fetching the same failed URL fails again.
+    if (!modules.has(url)) {
+      imports.push(url);
+      modules.set(
+        url,
+        imports.length <= 2
+          ? Promise.reject(new Error('Temporary network failure'))
+          : Promise.resolve({ createInstance: () => instance }),
+      );
+    }
+    return modules.get(url);
+  };
+  const get = searchIndexes('/blog/', controller.signal, load);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const first = get('pagefind');
+    assert.equal(get('pagefind'), first);
+    await assert.rejects(first, /Temporary network failure/);
+  }
+  const retried = get('pagefind');
+  assert.equal(get('pagefind'), retried);
+  assert.equal(await retried, instance);
+  assert.equal(await get('pagefind'), instance);
+  assert.deepEqual(await instance.search('example'), { results: [] });
+  assert.equal(imports[0], '/blog/pagefind/pagefind.js');
+  assert.equal(imports.length, 3);
+  assert.equal(new Set(imports).size, 3);
+  for (const url of imports.slice(1))
+    assert.match(url, /^\/blog\/pagefind\/pagefind\.js\?retry=\d+$/);
+  await get('pagefind-title');
+  assert.equal(imports.at(-1), '/blog/pagefind-title/pagefind.js');
+  controller.abort();
+  const calls = imports.length;
+  await assert.rejects(get('pagefind'), { name: 'AbortError' });
+  assert.equal(imports.length, calls);
+  // A later page must reuse the recovered URL, avoiding the cached failure.
+  const next = new AbortController();
+  assert.equal(
+    await searchIndexes('/blog/', next.signal, load)('pagefind'),
+    instance,
+  );
+  assert.equal(imports.length, calls);
+  next.abort();
+});
+
+test('a cancelled Pagefind import cannot create an instance or retry after navigation', async () => {
+  const controller = new AbortController();
+  let resolve;
+  let calls = 0;
+  let created = 0;
+  const get = searchIndexes('/', controller.signal, () => {
+    calls++;
+    return new Promise((done) => {
+      resolve = done;
+    });
+  });
+  const pending = get('pagefind');
+  await new Promise((done) => setImmediate(done));
+  controller.abort();
+  resolve({
+    createInstance() {
+      created++;
+    },
+  });
+  await assert.rejects(pending, { name: 'AbortError' });
+  await assert.rejects(get('pagefind'), { name: 'AbortError' });
+  assert.equal(calls, 1);
+  assert.equal(created, 0);
+});
+
+test('invalidating a failed index always destroys it once and cannot evict its replacement', async () => {
+  const controller = new AbortController();
+  const instances = [];
+  const get = searchIndexes('/recovery/', controller.signal, async () => ({
+    createInstance() {
+      const failed = instances.length === 0;
+      const instance = {
+        destroyed: 0,
+        init: async () => {
+          if (failed) throw new Error('Initialization failed');
+        },
+        destroy: async () => {
+          instance.destroyed++;
+        },
+        search: async () => {
+          if (failed) throw new Error('Index unavailable');
+          return { results: [] };
+        },
+      };
+      instances.push(instance);
+      return instance;
+    },
+  }));
+  const first = await get('pagefind');
+  await assert.rejects(first.search('query'), /Index unavailable/);
+  await Promise.all([
+    get.invalidate('pagefind', first),
+    get.invalidate('pagefind', first),
+  ]);
+  assert.equal(instances[0].destroyed, 1);
+  const second = await get('pagefind');
+  assert.notEqual(second, first);
+  await get.invalidate('pagefind', first);
+  assert.equal(await get('pagefind'), second);
+  assert.equal(instances[1].destroyed, 0);
+  assert.deepEqual(await second.search('query'), { results: [] });
+  controller.abort();
+  await get.invalidate('pagefind', second);
+  assert.equal(instances[0].destroyed, 1);
+  assert.equal(instances[1].destroyed, 1);
+});
+
 test('search scopes separate post title/description/body and exclude other content by default', () => {
   const entry = {
     title: 'TitleToken',

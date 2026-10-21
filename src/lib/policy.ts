@@ -1,3 +1,5 @@
+import { validSlug, slugRule } from '../../scripts/lib/slug.mjs';
+
 export interface Visibility {
   draft: boolean;
   hidden: boolean;
@@ -22,13 +24,31 @@ export function canDiscover(data: Visibility, now = new Date()): boolean {
 }
 
 export function safeSlug(value: string): string {
-  const result = value.trim().replace(/^\/+|\/+$/g, '');
-  if (
-    !result ||
-    result.split('/').some((part) => !part || part === '.' || part === '..') ||
-    /[?#\\]/.test(result)
-  ) {
-    throw new Error(`Invalid article slug: ${value}`);
-  }
-  return result;
+  if (!validSlug(value))
+    throw new Error(`Invalid slug: ${JSON.stringify(value)}. ${slugRule}`);
+  return value;
+}
+
+/** Warn with the source file before routing or schema transforms can fail. */
+export function validateContentSlugs(
+  data: Record<string, unknown>,
+  file: string,
+  warn: (message: string) => void,
+  post = false,
+): void {
+  const fields: [string, unknown][] = [['slug', data.slug]];
+  if (post)
+    for (const field of ['category', 'categories', 'tags']) {
+      const values = data[field];
+      if (values !== undefined)
+        for (const value of Array.isArray(values) ? values : [values])
+          fields.push([field, value]);
+    }
+  const invalid = fields.filter(([, value]) => !validSlug(value));
+  for (const [field, value] of invalid)
+    warn(
+      `Invalid ${field === 'slug' ? 'slug' : `${field} slug`} in ${file}: ${JSON.stringify(value)}. ${slugRule}`,
+    );
+  if (invalid.length)
+    throw new Error(`Invalid content slugs in ${file}. ${slugRule}`);
 }

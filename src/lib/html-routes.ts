@@ -30,7 +30,7 @@ export async function htmlRoutes(lang: Locale): Promise<string[]> {
     if (!isIntroOnly(page.data.slug))
       paths.push(href(lang, `${encodedSlug(page.data.slug)}/`));
   for (const kind of ['categories', 'tags'] as const)
-    for (const group of await taxonomy(kind, lang))
+    for (const group of await taxonomy(kind, lang, true))
       paths.push(href(lang, `${kind}/${encodedSlug(group.slug)}/`));
   return paths;
 }

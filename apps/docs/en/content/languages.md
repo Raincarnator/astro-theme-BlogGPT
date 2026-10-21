@@ -33,7 +33,7 @@ Policies apply to single- and multilingual sites. Subdirectory deployment prepen
 
 `redirect-to-default` creates entry points for generated HTML pages, using the final address including any date directories. Queries and paragraph anchors are retained when JavaScript is enabled. RSS, JSON, images and attachments use final addresses. Rebuild and replace complete output after changing policy; the host serves pages or 404 according to actual files.
 
-Each language page has its own canonical. `hreflang` links real translations, including articles with different date directories or standalone pages with different slugs. Fallback-body pages keep their own canonical; the language menu can open the corresponding available fallback page. Redirect entry points are excluded from Sitemap and search indexes.
+Each language page has its own canonical. `hreflang` links real translations, including articles with different date directories. All language versions of the same content must share a slug. Fallback-body pages keep their own canonical; the language menu can open the corresponding available fallback page. Redirect entry points are excluded from Sitemap and search indexes.
 
 After changing the language prefix policy, authors must check that relative content links still point to the correct final URLs. The theme does not migrate these links automatically; the build warns about invalid local relative URLs. See [Files and URLs](./organization.md).
 
@@ -98,7 +98,7 @@ content/pages/about/index.en.mdx
 
 Markdown and MDX can be paired. Each version has its own title, description, dates and body, sharing bundle attachments. Categories and tags follow the same rule.
 
-Every version of an article (same directory and base filename, different language suffixes) must use the same `slug`, including draft and hidden versions. A mismatch fails the build. Standalone pages, categories and tags may still use different translated slugs.
+The same rule applies to posts, standalone pages, categories and tags under `content/`: versions in the same directory with the same base filename and different language suffixes must share a `slug`, including unsuffixed, draft, hidden and disabled-language versions. Slugs must start with a lowercase ASCII letter or digit and contain only lowercase ASCII letters `a–z`, digits `0–9` and hyphens `-`. Leading hyphens, uppercase or mismatched values produce warnings identifying the source files and conflicting values, then stop the build.
 
 ## Missing translations
 

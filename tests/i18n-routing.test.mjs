@@ -167,23 +167,23 @@ test('arbitrary registered filename suffixes pair by family and follow exact con
 });
 
 test('article paths use publication dates in the site timezone and reject unsafe patterns', () => {
-  const post = { slug: 'notes/hello', date: new Date('2025-12-31T16:30:00Z') };
-  assert.equal(postPath(post), 'notes/hello');
+  const post = { slug: 'notes-hello', date: new Date('2025-12-31T16:30:00Z') };
+  assert.equal(postPath(post), 'notes-hello');
   assert.equal(
     postPath(post, '[year]/[month]/[day]', 'Asia/Shanghai'),
-    '2026/01/01/notes/hello',
+    '2026/01/01/notes-hello',
   );
   assert.equal(
     postPath(post, 'journal/[year]', 'UTC'),
-    'journal/2025/notes/hello',
+    'journal/2025/notes-hello',
   );
   assert.equal(
     postPath(post, '[year]/[month]/[day]/', 'Asia/Shanghai'),
-    '2026/01/01/notes/hello',
+    '2026/01/01/notes-hello',
   );
   assert.equal(
     postPath(post, 'journal/[year]/', 'UTC'),
-    'journal/2025/notes/hello',
+    'journal/2025/notes-hello',
   );
   for (const pattern of [
     '/x',

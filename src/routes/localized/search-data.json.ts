@@ -7,6 +7,7 @@ import {
   encodedSlug,
   isIntroOnly,
   introFor,
+  taxonomy,
 } from '../../lib/content';
 import { href } from '../../lib/i18n';
 import { introRoutes } from '../../lib/intro-config';
@@ -24,10 +25,15 @@ export const GET: APIRoute = async ({ routePattern }) => {
   }));
   if (import.meta.env.DEV) {
     for (const kind of ['pages', 'categories', 'tags'] as const) {
+      const publicTerms =
+        kind === 'pages'
+          ? undefined
+          : new Set((await taxonomy(kind, lang)).map((group) => group.slug));
       for (const entry of await textEntriesFor(kind, lang)) {
         if (
           entry.data.hidden ||
           entry.data.draft ||
+          (publicTerms && !publicTerms.has(entry.data.slug)) ||
           (kind === 'pages' && isIntroOnly(entry.data.slug))
         )
           continue;

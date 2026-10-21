@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import type { TextEntry } from '../lib/content';
-import { withBase } from '../lib/i18n';
+import { contentImage } from '../lib/content-image';
 import config from '../lib/config';
 import katexStyles from 'katex/dist/katex.min.css?url';
 import { articleFeatures } from '../lib/article-options';
@@ -13,7 +13,7 @@ interface Props {
 const { entry, showCover = true, indexContent = true } = Astro.props;
 const rendered = entry ? await render(entry) : undefined;
 const Content = rendered?.Content;
-const image = entry?.data.image;
+const image = contentImage(entry?.data.image, Astro.url.pathname);
 const features = articleFeatures(entry?.data ?? {}, config.article);
 ---
 
@@ -33,13 +33,7 @@ const features = articleFeatures(entry?.data ?? {}, config.article);
       <link rel="stylesheet" href={katexStyles} />
     )}
     {showCover && image && (
-      <img
-        class="article-cover"
-        src={image.startsWith('/') ? withBase(image) : image}
-        alt=""
-        width="960"
-        height="400"
-      />
+      <img class="article-cover" src={image} alt="" width="960" height="400" />
     )}
     {Content && (
       <div

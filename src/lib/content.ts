@@ -6,7 +6,7 @@ import { canDiscover, canRender } from './policy';
 import {
   chooseVariants,
   assertUniqueSlugs,
-  assertMatchingPostSlugs,
+  assertMatchingSlugs,
 } from './content-variants';
 import { href } from './i18n';
 import { introPageSlug, introRoutes } from './intro-config';
@@ -37,7 +37,7 @@ export async function postsFor(
   lang: Locale,
   includeHidden = false,
 ): Promise<Post[]> {
-  const posts = assertMatchingPostSlugs(await getCollection('posts')).filter(
+  const posts = assertMatchingSlugs(await getCollection('posts')).filter(
     (post) =>
       canRender(post.data, import.meta.env.DEV, config.posts.showDraftsInDev),
   );
@@ -53,7 +53,7 @@ export async function textEntriesFor<K extends 'pages' | TermKind>(
   kind: K,
   lang: Locale,
 ) {
-  const entries = await getCollection(kind);
+  const entries = assertMatchingSlugs(await getCollection(kind));
   return choose(
     entries.filter(
       (entry) =>
@@ -66,14 +66,7 @@ export async function textEntriesFor<K extends 'pages' | TermKind>(
 }
 export async function pageFor(slug: string, lang: Locale) {
   const pages = await textEntriesFor('pages', lang);
-  const exact = pages.find((page) => page.data.slug === slug);
-  if (exact) return exact;
-  const reference = (await getCollection('pages')).find(
-    (page) => page.data.slug === slug,
-  );
-  return reference
-    ? pages.find((page) => page.data._key === reference.data._key)
-    : undefined;
+  return pages.find((page) => page.data.slug === slug);
 }
 function introSlug(route: string): string | undefined {
   return introPageSlug(config, route);
@@ -87,7 +80,7 @@ export async function introFor(route: string, lang: Locale) {
   return page;
 }
 export function isReservedPage(slug: string) {
-  return /^(posts|categories|tags|search|archives|links|page-og|og|rss\.xml|search-data\.json)(\/|$)/.test(
+  return /^(404|posts|categories|tags|search|archives|links|page-og|og|rss\.xml|search-data\.json)(\/|$)/.test(
     slug,
   );
 }
@@ -118,23 +111,36 @@ export function readingMinutes(post: { body?: string }): number {
     .filter(Boolean).length;
   return Math.max(1, Math.ceil(chinese / 350 + words / 220));
 }
-export async function taxonomy(kind: TermKind, lang: Locale) {
+export async function taxonomy(
+  kind: TermKind,
+  lang: Locale,
+  includeHidden = false,
+) {
   const definitions = await textEntriesFor(kind, lang);
   const groups = new Map<string, Post[]>(
-    definitions
-      .filter((entry) => !entry.data.hidden)
-      .map((entry) => [entry.data.slug, []]),
+    definitions.map((entry) => [entry.data.slug, []]),
   );
-  for (const post of await postsFor(lang))
-    for (const key of post.data[kind])
-      groups.set(key, [...(groups.get(key) ?? []), post]);
+  const hiddenReferences = new Set<string>();
+  for (const post of await postsFor(lang, true))
+    for (const key of post.data[kind]) {
+      if (!groups.has(key)) groups.set(key, []);
+      if (post.data.hidden) hiddenReferences.add(key);
+      else groups.get(key)!.push(post);
+    }
   return [...groups]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([slug, posts]) => ({
-      slug,
-      posts,
-      entry: definitions.find((entry) => entry.data.slug === slug),
-    }));
+    .map(([slug, posts]) => {
+      const entry = definitions.find((entry) => entry.data.slug === slug);
+      return {
+        slug,
+        posts,
+        entry,
+        hidden:
+          !!entry?.data.hidden ||
+          (hiddenReferences.has(slug) && posts.length === 0),
+      };
+    })
+    .filter((group) => includeHidden || !group.hidden);
 }
 export async function taxonomyLabels(lang: Locale) {
   const result: {

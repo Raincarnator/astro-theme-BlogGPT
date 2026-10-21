@@ -21,6 +21,8 @@ import { searchIndexes } from '../lib/search-client';
 
 let controller: AbortController | undefined;
 let selectedTheme = 'system';
+let themeInitialized = false;
+let preferredSidebarWidth: number | undefined;
 const media = matchMedia('(prefers-color-scheme: dark)');
 const resolveTheme = () =>
   selectedTheme === 'system'
@@ -303,14 +305,17 @@ function setup() {
       { signal, capture: true },
     );
   }
-  selectedTheme = document.documentElement.dataset.defaultTheme ?? 'system';
-  try {
-    selectedTheme = localStorage.getItem('bloggpt-theme') ?? selectedTheme;
-  } catch {
-    /* Storage may be disabled. */
+  if (!themeInitialized) {
+    selectedTheme = document.documentElement.dataset.defaultTheme ?? 'system';
+    try {
+      selectedTheme = localStorage.getItem('bloggpt-theme') ?? selectedTheme;
+    } catch {
+      /* Storage may be disabled. */
+    }
+    if (!['light', 'dark', 'system'].includes(selectedTheme))
+      selectedTheme = 'system';
+    themeInitialized = true;
   }
-  if (!['light', 'dark', 'system'].includes(selectedTheme))
-    selectedTheme = 'system';
   applyTheme();
   delete document.documentElement.dataset.mobileSidebar;
   const updateThemeControls = () => {
@@ -440,20 +445,26 @@ function setup() {
   const minWidth = Number(shell.dataset.sidebarMinWidth);
   const maxWidth = Number(shell.dataset.sidebarMaxWidth);
   let preferredWidth =
-    parseFloat(shell.style.getPropertyValue('--sidebar-width')) || defaultWidth;
-  try {
-    const savedWidth = Number(localStorage.getItem('bloggpt-sidebar-width'));
-    if (
-      Number.isFinite(savedWidth) &&
-      savedWidth >= minWidth &&
-      savedWidth <= maxWidth
-    )
-      preferredWidth = savedWidth;
-  } catch {
-    /* Storage is optional. */
+    preferredSidebarWidth ??
+    (parseFloat(shell.style.getPropertyValue('--sidebar-width')) ||
+      defaultWidth);
+  if (preferredSidebarWidth === undefined) {
+    try {
+      const savedWidth = Number(localStorage.getItem('bloggpt-sidebar-width'));
+      if (
+        Number.isFinite(savedWidth) &&
+        savedWidth >= minWidth &&
+        savedWidth <= maxWidth
+      )
+        preferredWidth = savedWidth;
+    } catch {
+      /* Storage is optional. */
+    }
   }
   let drag: { pointer: number; x: number; width: number } | undefined;
   const applySidebarWidth = () => {
+    // Retain the preference before viewport clamping, even if storage writes fail.
+    preferredSidebarWidth = preferredWidth;
     const width = Math.round(
       Math.max(
         minWidth,
@@ -936,10 +947,15 @@ function setup() {
         {
           signal,
         },
-      ).then((res) => {
-        if (!res.ok) throw new Error('Search index unavailable');
-        return res.json();
-      });
+      )
+        .then((res) => {
+          if (!res.ok) throw new Error('Search index unavailable');
+          return res.json();
+        })
+        .catch((error) => {
+          fallbackPromise = undefined;
+          throw error;
+        });
       const candidates = (await fallbackPromise)
         .filter((entry) => matchesSearch(entry, query, scope))
         .slice(0, 30);
@@ -954,58 +970,67 @@ function setup() {
     const folder =
       scope === 'title' || scope === 'body' ? `pagefind-${scope}` : 'pagefind';
     const pagefind = await getSearchIndex(folder);
-    const result = await pagefind.search(
-      searchTokens(query),
-      scope === 'articles' ? { filters: { kind: 'posts' } } : undefined,
-    );
-    const matches: {
-      title: string;
-      description: string;
-      sections: SearchSection[];
-      url: string;
-    }[] = [];
-    const runs = query.match(/\p{Script=Han}+/gu) ?? [];
-    // Load ranked candidates in batches; common characters must not download
-    // the whole corpus when the first batch already fills the results page.
-    for (
-      let offset = 0;
-      offset < result.results.length && matches.length < 30;
-      offset += 30
-    ) {
-      if (signal.aborted)
-        throw new DOMException('Navigation cancelled', 'AbortError');
-      const batch = await Promise.all(
-        result.results.slice(offset, offset + 30).map(async (item) => {
-          const data = await item.data();
-          const parsed = new DOMParser().parseFromString(
-            data.excerpt,
-            'text/html',
-          );
-          return {
-            title: data.meta.title ?? '',
-            description:
-              data.meta.description ??
-              (parsed.body.textContent ?? '').slice(0, 180),
-            sections: JSON.parse(data.meta.sections ?? '[]') as SearchSection[],
-            url: data.url,
-          };
-        }),
-      );
-      // Character tokens are candidates; verify original CJK runs to exclude
-      // unrelated occurrences of individual characters in distant paragraphs.
-      matches.push(
-        ...batch.filter((entry) => {
-          const text =
-            scope === 'title'
-              ? `${entry.title} ${entry.description}`
-              : scope === 'body'
-                ? entry.sections.map((section) => section.text).join(' ')
-                : `${entry.title} ${entry.description} ${entry.sections.map((section) => section.text).join(' ')}`;
-          return runs.every((run) => text.includes(run));
-        }),
-      );
+    try {
+      const result = await pagefind.search(searchTokens(query), {
+        filters: {
+          locale: lang.toLowerCase(),
+          ...(scope === 'articles' ? { kind: 'posts' } : {}),
+        },
+      });
+      const matches: {
+        title: string;
+        description: string;
+        sections: SearchSection[];
+        url: string;
+      }[] = [];
+      const runs = query.match(/\p{Script=Han}+/gu) ?? [];
+      // Load ranked candidates in batches; common characters must not download
+      // the whole corpus when the first batch already fills the results page.
+      for (
+        let offset = 0;
+        offset < result.results.length && matches.length < 30;
+        offset += 30
+      ) {
+        if (signal.aborted)
+          throw new DOMException('Navigation cancelled', 'AbortError');
+        const batch = await Promise.all(
+          result.results.slice(offset, offset + 30).map(async (item) => {
+            const data = await item.data();
+            const parsed = new DOMParser().parseFromString(
+              data.excerpt,
+              'text/html',
+            );
+            return {
+              title: data.meta.title ?? '',
+              description:
+                data.meta.description ??
+                (parsed.body.textContent ?? '').slice(0, 180),
+              sections: JSON.parse(
+                data.meta.sections ?? '[]',
+              ) as SearchSection[],
+              url: data.url,
+            };
+          }),
+        );
+        // Character tokens are candidates; verify original CJK runs to exclude
+        // unrelated occurrences of individual characters in distant paragraphs.
+        matches.push(
+          ...batch.filter((entry) => {
+            const text =
+              scope === 'title'
+                ? `${entry.title} ${entry.description}`
+                : scope === 'body'
+                  ? entry.sections.map((section) => section.text).join(' ')
+                  : `${entry.title} ${entry.description} ${entry.sections.map((section) => section.text).join(' ')}`;
+            return runs.every((run) => text.includes(run));
+          }),
+        );
+      }
+      return matches.slice(0, 30);
+    } catch (error) {
+      await getSearchIndex.invalidate(folder, pagefind);
+      throw error;
     }
-    return matches.slice(0, 30);
   };
   const commandStatus =
     document.querySelector<HTMLDialogElement>('#blog-status');
@@ -1135,10 +1160,11 @@ function setup() {
       'submit',
       (event) => {
         if (input.value.trim().startsWith('@')) {
-          input.value = input.value.trim().slice(1);
           setScope('title');
-        }
-        if (input.value.trim().startsWith('/') && executeCommand(input.value)) {
+        } else if (
+          input.value.trim().startsWith('/') &&
+          executeCommand(input.value)
+        ) {
           event.preventDefault();
           event.stopImmediatePropagation();
           input.value = '';
@@ -1203,7 +1229,11 @@ function setup() {
       output.append(p);
     };
     const search = async () => {
-      const query = input.value.trim();
+      const value = input.value.trim();
+      // Keep @ in the input so another submit remains a literal title search.
+      const titleSearch = value.startsWith('@');
+      if (titleSearch) setScope('title');
+      const query = titleSearch ? value.slice(1).trim() : value;
       const request = ++sequence;
       if (!query) {
         const recent = document.querySelector<HTMLTemplateElement>(

@@ -4,10 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { parse, type DefaultTreeAdapterMap } from 'parse5';
 import type { AstroIntegration } from 'astro';
 import { siteAddress } from '../lib/site-url.ts';
+import { srcsetCandidates } from '../lib/url-values.ts';
 
 type Node = DefaultTreeAdapterMap['node'];
 type LinkWarning = { page: string; reference: string; reason: string };
-const attributes = new Set(['href', 'src', 'poster', 'data', 'cite']);
+const attributes = new Set(['href', 'src', 'poster', 'data', 'action', 'cite']);
 
 function inspect(html: string) {
   const references = new Set<string>();
@@ -15,7 +16,7 @@ function inspect(html: string) {
   let redirect = false;
   function visit(node: Node, inContent = false) {
     if ('tagName' in node) {
-      if (['script', 'style', 'template'].includes(node.tagName)) return;
+      if (node.tagName === 'template') return;
       if (
         node.tagName === 'meta' &&
         node.attrs.some(
@@ -40,11 +41,11 @@ function inspect(html: string) {
         for (const attr of node.attrs) {
           if (attributes.has(attr.name)) references.add(attr.value);
           if (attr.name === 'srcset')
-            for (const match of attr.value.matchAll(
-              /(^|,\s*)([^\s]+)(\s+\d+(?:\.\d+)?[wx])?(?=\s*(?:,|$))/g,
-            ))
-              references.add(match[2]);
+            for (const candidate of srcsetCandidates(attr.value))
+              references.add(candidate.url);
         }
+      // Script/style attributes are URLs too, but their bodies are not markup.
+      if (['script', 'style'].includes(node.tagName)) return;
     }
     if ('childNodes' in node)
       for (const child of node.childNodes) visit(child, inContent);

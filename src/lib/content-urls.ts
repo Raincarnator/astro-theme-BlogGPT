@@ -1,5 +1,6 @@
 import { parse, type DefaultTreeAdapterMap } from 'parse5';
 import { searchAnchors } from './search-anchors.ts';
+import { trimUrl, srcsetCandidates } from './url-values.ts';
 
 const urlAttributes = new Set([
   'href',
@@ -10,21 +11,16 @@ const urlAttributes = new Set([
   'cite',
 ]);
 function resolve(value: string, page: URL): string {
-  // URL parsing ignores leading/trailing C0 controls and ASCII spaces.
-  // eslint-disable-next-line no-control-regex
-  const normalized = value.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '');
+  const normalized = trimUrl(value);
   if (!normalized || /^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(normalized))
     return value;
   const url = new URL(value, page);
   return `${url.pathname}${url.search}${url.hash}`;
 }
 function srcset(value: string, page: URL): string {
-  // Split at candidate whitespace, leaving commas inside data URLs intact.
-  return value.replace(
-    /(^|,\s*)([^\s]+)(\s+\d+(?:\.\d+)?[wx])?(?=\s*(?:,|$))/g,
-    (_, separator: string, url: string, descriptor = '') =>
-      `${separator}${resolve(url, page)}${descriptor}`,
-  );
+  for (const { url, start, end } of srcsetCandidates(value).reverse())
+    value = value.slice(0, start) + resolve(url, page) + value.slice(end);
+  return value;
 }
 
 /** Resolve relative content URLs before Astro swaps the DOM at the old browser URL. */

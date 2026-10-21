@@ -9,7 +9,7 @@ import config from './src/lib/config';
 import contentBundles from './src/integrations/content-bundles';
 import localeRoutes from './src/integrations/locale-routes';
 import relativeLinks from './src/integrations/relative-links';
-import { hasLocalePrefix } from './src/lib/locale-routing';
+import { hasLocalePrefix, localeHref } from './src/lib/locale-routing';
 import remarkMath from 'remark-math';
 import rehypeMath from './src/plugins/rehype-math';
 import remarkCallouts from './src/plugins/remark-callouts';
@@ -28,6 +28,13 @@ const remarkPlugins: RemarkPlugins = [
     },
   ],
 ];
+const excludedSitemapPaths = new Set([
+  `${config.site.base}404/`,
+  `${config.site.base}404.html`,
+  ...config.site.locales.map((locale) =>
+    localeHref(config.site, locale, 'search/'),
+  ),
+]);
 
 export default defineConfig({
   site: config.site.url,
@@ -68,7 +75,7 @@ export default defineConfig({
         )
           return false;
         // Individual article visibility is enforced again by build-search.mjs.
-        return !path.endsWith('/404/') && !path.endsWith('/search/');
+        return !excludedSitemapPaths.has(path);
       },
     }),
     relativeLinks(config.site.baseUrl),

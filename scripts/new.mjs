@@ -8,6 +8,9 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { extractFrontmatter } from '@astrojs/markdown-remark';
+import { parse } from 'yaml';
+import { validSlug, slugRule } from './lib/slug.mjs';
 
 const kinds = {
   page: 'pages',
@@ -49,28 +52,28 @@ function replaceTokens(
   );
 }
 function renderTemplate(source, values) {
-  const match = source.match(/^(---\r?\n)([\s\S]*?)(\r?\n---)([\s\S]*)$/);
-  if (!match) return replaceTokens(source, values);
-  const metadata = match[2]
+  const raw = extractFrontmatter(source);
+  if (raw === undefined) return replaceTokens(source, values);
+  const start = source.indexOf(raw);
+  const metadata = raw
     .split('\n')
     .map((line) => {
-      const quoted = line.match(/^(\s*[\w-]+:\s*)(["'])(.*)\2(\s*(?:#.*)?)$/);
+      const quoted = line.match(
+        /^(\s*[\w-]+:\s*)("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')([ \t]*(?:#[^\r\n]*)?\r?)$/,
+      );
       if (!quoted) return replaceTokens(line, values);
-      const [, prefix, quote, body, suffix] = quoted;
-      const escape = (value) =>
-        quote === '"'
-          ? JSON.stringify(String(value)).slice(1, -1)
-          : String(value).replaceAll("'", "''");
+      const [, prefix, scalar, suffix] = quoted;
+      // JSON strings are valid YAML scalars and preserve newlines/control bytes.
       return (
-        prefix +
-        quote +
-        replaceTokens(body, values, false, escape) +
-        quote +
-        suffix
+        prefix + JSON.stringify(replaceTokens(parse(scalar), values)) + suffix
       );
     })
     .join('\n');
-  return match[1] + metadata + match[3] + replaceTokens(match[4], values);
+  return (
+    source.slice(0, start) +
+    metadata +
+    replaceTokens(source.slice(start + raw.length), values)
+  );
 }
 export async function createContent(
   root,
@@ -84,22 +87,7 @@ export async function createContent(
     kinds[type] ?? (Object.values(kinds).includes(type) ? type : undefined);
   if (!directory) throw new Error(usage);
   const singular = Object.keys(kinds).find((key) => kinds[key] === directory);
-  if (
-    !slug ||
-    slug
-      .split('/')
-      .some(
-        (part) =>
-          !part ||
-          part === '.' ||
-          part === '..' ||
-          /[<>:"\\|?*#]/.test(part) ||
-          [...part].some((character) => character.charCodeAt(0) < 32),
-      )
-  )
-    throw new Error(
-      'Use a non-empty slug without traversal or URL query/fragment characters.',
-    );
+  if (!validSlug(slug)) throw new Error(`Invalid slug. ${slugRule}`);
   if (!template || !/^[-\p{L}\p{N}_]+$/u.test(template))
     throw new Error('Template name must be one directory name.');
   const source = path.resolve(root, 'archetypes', directory, template);

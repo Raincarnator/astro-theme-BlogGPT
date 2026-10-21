@@ -10,7 +10,7 @@ pnpm new category notes --title "Notes"
 pnpm new tag photography --title "Photography"
 ```
 
-The format is `pnpm new <post|page|category|tag> <slug> [--use <template>] [--title <title>]`. Types are singular and directories are plural. Omit `--use` for `default`, or use `--help` for help.
+The format is `pnpm new <post|page|category|tag> <slug> [--use <template>] [--title <title>]`. Slugs must start with a lowercase ASCII letter or digit and contain only lowercase ASCII letters, digits and hyphens (-); titles may use any language. Types are singular and directories are plural. Omit `--use` for `default`, or use `--help` for help.
 
 The default article template includes `draft: true`. Change it to `false` when ready to publish.
 
@@ -32,7 +32,7 @@ Filenames and folder names use placeholders such as `[slug]`; Markdown / MDX bod
 | Variable                 | Value                                               |
 | ------------------------ | --------------------------------------------------- |
 | `type`                   | Singular type: post / page / category / tag         |
-| `slug`                   | Complete supplied slug, such as notes/hello         |
+| `slug`                   | Supplied slug, such as notes-hello                  |
 | `title`                  | `--title`, or the slug’s final segment when omitted |
 | `template`               | Template name, defaulting to default                |
 | `date`                   | UTC date, YYYY-MM-DD                                |
@@ -49,4 +49,4 @@ date: '{{ datetime }}'
 slug: '{{ slug }}'
 ```
 
-Quote YAML string placeholders; the command escapes quotes within titles. Other attachments are copied unchanged. Existing destinations produce a conflict, preserving the original files.
+Quote YAML string placeholders; the command handles quotes, line breaks and other title characters, emitting double-quoted strings. Other attachments are copied unchanged. Existing destinations produce a conflict, preserving the original files.

@@ -61,18 +61,25 @@ export function assertUniqueSlugs<T extends { data: { slug: string } }>(
   return entries;
 }
 
-/** Translations of an article share a URL slug, including unpublished versions. */
-export function assertMatchingPostSlugs<
-  T extends { data: { _key: string; _locale?: string; slug: string } },
->(entries: T[]): T[] {
-  const families = new Map<string, T['data']>();
-  for (const { data } of entries) {
+/** All translations share a slug, including neutral, disabled and unpublished versions. */
+export function assertMatchingSlugs<
+  T extends {
+    id?: string;
+    data: { _key: string; _locale?: string; slug: string };
+  },
+>(entries: T[], warn?: (message: string) => void): T[] {
+  const families = new Map<string, T>();
+  const source = (entry: T) =>
+    entry.id ?? `${entry.data._key} (${entry.data._locale || 'unsuffixed'})`;
+  for (const entry of entries) {
+    const { data } = entry;
     const previous = families.get(data._key);
-    if (previous && previous.slug !== data.slug)
-      throw new Error(
-        `Article translations must use the same slug: ${data._key} (${previous._locale || 'unsuffixed'}: ${previous.slug}, ${data._locale || 'unsuffixed'}: ${data.slug}).`,
-      );
-    families.set(data._key, data);
+    if (previous && previous.data.slug !== data.slug) {
+      const message = `Content translations must use the same slug: ${data._key} (${source(previous)}: ${previous.data.slug}, ${source(entry)}: ${data.slug}).`;
+      warn?.(message);
+      throw new Error(message);
+    }
+    families.set(data._key, entry);
   }
   return entries;
 }

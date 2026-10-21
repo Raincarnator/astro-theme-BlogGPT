@@ -10,11 +10,15 @@ import { siteAddress } from '../lib/site-url.ts';
 import { contentKinds, readContentFiles } from '../lib/content-files.ts';
 import {
   assertUniqueSlugs,
-  assertMatchingPostSlugs,
+  assertMatchingSlugs,
   chooseVariants,
   fileIdentity,
 } from '../lib/content-variants.ts';
 import { safeSlug } from '../lib/policy.ts';
+import {
+  parseContentDate,
+  validateContentDates,
+} from '../lib/content-dates.ts';
 import { introPageSlug, introRoutes } from '../lib/intro-config.ts';
 import { localeRoot } from '../lib/locale-routing.ts';
 
@@ -45,36 +49,46 @@ export async function bundleAssets(
   for (const kind of contentKinds) {
     const entries = records
       .filter((record) => record.kind === kind)
-      .map((record) => ({
-        ...record,
-        data: {
-          ...record.data,
-          draft: record.data.draft,
-          date: record.data.date,
-          published: record.data.published,
-          pubDatetime: record.data.pubDatetime,
-          _key: record.identity.key,
-          _locale: record.identity.locale,
-          slug: safeSlug(
-            String(
-              record.data.slug ??
-                (record.identity.bundle
-                  ? path.posix.basename(path.posix.dirname(record.identity.key))
-                  : path.posix.basename(record.identity.key)),
+      .map((record) => {
+        const id = `content/${kind}/${record.file}`;
+        validateContentDates(record.data, id, (message) =>
+          console.warn(message),
+        );
+        const date =
+          record.data.date ?? record.data.published ?? record.data.pubDatetime;
+        return {
+          ...record,
+          id,
+          publicationDate:
+            date === undefined ? undefined : parseContentDate(date),
+          data: {
+            ...record.data,
+            draft: record.data.draft,
+            date: record.data.date,
+            published: record.data.published,
+            pubDatetime: record.data.pubDatetime,
+            _key: record.identity.key,
+            _locale: record.identity.locale,
+            slug: safeSlug(
+              String(
+                record.data.slug ??
+                  (record.identity.bundle
+                    ? path.posix.basename(
+                        path.posix.dirname(record.identity.key),
+                      )
+                    : path.posix.basename(record.identity.key)),
+              ),
             ),
-          ),
-        },
-      }));
-    if (kind === 'posts') assertMatchingPostSlugs(entries);
+          },
+        };
+      });
+    assertMatchingSlugs(entries);
     const visible = entries.filter((entry) => {
       if (dev && config.posts.showDraftsInDev) return true;
-      const date =
-        entry.data.date ?? entry.data.published ?? entry.data.pubDatetime;
       return (
         !entry.data.draft &&
         (kind !== 'posts' ||
-          new Date(typeof date === 'number' ? date : String(date)).getTime() <=
-            Date.now())
+          (entry.publicationDate?.getTime() ?? NaN) <= Date.now())
       );
     });
     for (const locale of config.site.locales) {
@@ -98,7 +112,7 @@ export async function bundleAssets(
             : [
                 kind === 'pages'
                   ? `${prefix}${record.data.slug}`
-                  : `${prefix}${kind}/${kind === 'posts' ? postPath({ slug: record.data.slug, date: new Date(String(record.data.date ?? record.data.published ?? record.data.pubDatetime)) }, config.posts.pathPrefix, config.site.timezone) : record.data.slug}`,
+                  : `${prefix}${kind}/${kind === 'posts' ? postPath({ slug: record.data.slug, date: record.publicationDate! }, config.posts.pathPrefix, config.site.timezone) : record.data.slug}`,
               ];
         if (kind === 'pages')
           for (const route of introRoutes) {
@@ -154,6 +168,7 @@ const mime: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json',
   '.txt': 'text/plain; charset=utf-8',
   '.md': 'text/plain; charset=utf-8',

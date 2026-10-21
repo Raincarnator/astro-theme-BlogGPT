@@ -6,7 +6,8 @@ import ThemeIcon from '../../../components/ThemeIcon.astro';
 import ContentIntro from '../../../components/ContentIntro.astro';
 import BuiltinHeading from '../../../components/BuiltinHeading.astro';
 import { taxonomy, introFor, encodedSlug } from '../../../lib/content';
-import { t, href, withBase } from '../../../lib/i18n';
+import { contentImage } from '../../../lib/content-image';
+import { t, href } from '../../../lib/i18n';
 export const getStaticPaths = () =>
   ['categories', 'tags'].map((kind) => ({ params: { taxonomy: kind } }));
 const lang = pageLocale(Astro.routePattern);
@@ -52,13 +53,10 @@ const maxCount = Math.max(1, ...cloud.map((tag) => tag.posts.length));
           {entry?.data.image && (
             <img
               class="taxonomy-cover"
-              src={
-                entry.data.image.startsWith('/')
-                  ? withBase(entry.data.image)
-                  : /^[a-z]+:/i.test(entry.data.image)
-                    ? entry.data.image
-                    : `${href(lang, `${kind}/${encodedSlug(slug)}/`)}${entry.data.image}`
-              }
+              src={contentImage(
+                entry.data.image,
+                href(lang, `${kind}/${encodedSlug(slug)}/`),
+              )}
               alt=""
               width="64"
               height="64"

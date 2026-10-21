@@ -90,7 +90,9 @@ for (const scope of ['all', 'title', 'body']) {
         description: record.description,
         sections: JSON.stringify(record.sections),
       },
-      filters: { kind: [record.kind] },
+      // Pagefind falls back to another language when an index is absent.
+      // An exact locale filter keeps that fallback from exposing other versions.
+      filters: { kind: [record.kind], locale: [record.language.toLowerCase()] },
     });
     if (result.errors.length) throw new Error(result.errors.join(', '));
   }

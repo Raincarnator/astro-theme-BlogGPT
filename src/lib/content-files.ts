@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { extractFrontmatter } from '@astrojs/markdown-remark';
 import { fileIdentity } from './content-variants.ts';
 
 export const contentKinds = ['pages', 'posts', 'categories', 'tags'] as const;
@@ -41,10 +42,11 @@ export async function contentFiles(
 }
 
 export function frontmatter(source: string): Record<string, unknown> {
-  const match = source
-    .replace(/^\uFEFF/, '')
-    .match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  const data: unknown = match ? parse(match[1]) : {};
+  // Share Astro's boundaries while retaining YAML scalar types for validation.
+  // Astro's full parser coerces unquoted ISO date strings into Date objects.
+  const raw = extractFrontmatter(source);
+  const data: unknown =
+    raw === undefined ? {} : parse(raw, { schema: 'core', merge: true });
   if (!data || typeof data !== 'object' || Array.isArray(data))
     throw new Error('Frontmatter must be a YAML mapping.');
   return data as Record<string, unknown>;

@@ -22,22 +22,27 @@ export async function getStaticPaths({
   const paths = [];
   for (const lang of routeLocales(routePattern))
     for (const kind of ['categories', 'tags'] as const)
-      for (const group of await taxonomy(kind, lang))
+      for (const group of await taxonomy(kind, lang, true))
         paths.push({
           params: { taxonomy: kind, term: group.slug },
-          props: { posts: group.posts, entry: group.entry },
+          props: {
+            posts: group.posts,
+            entry: group.entry,
+            hidden: group.hidden,
+          },
         });
   return paths;
 }
 interface Props {
   posts: Post[];
   entry?: TextEntry;
+  hidden: boolean;
 }
 const lang = pageLocale(Astro.routePattern);
 const kind = Astro.params.taxonomy as 'categories' | 'tags';
 const term = Astro.params.term!;
 const ui = t(lang);
-const { posts, entry } = Astro.props;
+const { posts, entry, hidden } = Astro.props;
 const label = entry?.data.title ?? term;
 const alternatePaths: Partial<Record<Locale, string>> = {};
 const translationPaths: Partial<Record<Locale, string>> = {};
@@ -52,7 +57,7 @@ for (const locale of config.site.locales) {
     `${kind}/${encodedSlug(other?.data.slug ?? term)}/`,
   );
   if (
-    (await taxonomy(kind, locale)).some(
+    (await taxonomy(kind, locale, true)).some(
       (group) => group.slug === (other?.data.slug ?? term),
     )
   ) {
@@ -70,12 +75,14 @@ for (const locale of config.site.locales) {
   active={kind}
   alternatePaths={alternatePaths}
   translationPaths={translationPaths}
-  noindex={entry?.data.hidden || entry?.data.draft}
+  noindex={hidden || entry?.data.hidden || entry?.data.draft}
 >
   <div class="content-column">
     <section
       data-search-record={
-        entry && !entry.data.hidden && !entry.data.draft ? kind : undefined
+        entry && !hidden && !entry.data.hidden && !entry.data.draft
+          ? kind
+          : undefined
       }
       data-search-title={label}
       data-search-description={entry?.data.description}
