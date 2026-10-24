@@ -67,6 +67,8 @@ Screenshots captured at **1920 × 1200** and styled with [RicoScreenshot](https:
 
 ## Quick start
 
+For a minimal personal blog, maintainers can publish a separate template repository with the [starter automation](starter/MAINTAINING.md). It includes GitHub Template, Vercel and Netlify deployment links without the demo articles or documentation workspace.
+
 Requirements: **Node.js 22.12+** and **pnpm 11**. Download or clone this repository, enter its root directory, then run:
 
 ```sh

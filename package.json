@@ -34,6 +34,7 @@
     "format:check": "prettier --check .",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "new": "node scripts/new.mjs",
+    "starter:export": "node scripts/export-starter.mjs",
     "docs:dev": "pnpm --filter @bloggpt/docs dev",
     "docs:build": "pnpm --filter @bloggpt/docs build",
     "docs:preview": "pnpm --filter @bloggpt/docs preview",

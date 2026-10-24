@@ -1,5 +1,7 @@
 # BlogGPT
 
+需要精简的个人博客起点？维护者可通过 [starter 自动发布流程](starter/MAINTAINING.md) 维护独立模板仓库，提供 GitHub Template、Vercel 和 Netlify 部署入口，不包含演示文章和文档 workspace。
+
 **一个用 Astro 构建，受到 ChatGPT 布局启发的博客主题。**
 
 使用 Markdown 或 MDX 写作，以文件管理内容。通过熟悉的侧栏、专注的阅读区域和搜索框，让读者找到下一篇想读的文章。
