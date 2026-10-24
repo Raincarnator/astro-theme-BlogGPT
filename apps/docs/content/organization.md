@@ -1,51 +1,46 @@
 # 目录与网址
 
+BlogGPT 基于 Astro Content Collections 管理所有内容。你无需手动编写路由表——文件所在的目录与 Frontmatter 会自动决定每个页面的最终网址（URL）。
+
 ## 四类内容
 
-| 目录                  | 用途                 |
-| --------------------- | -------------------- |
-| `content/posts/`      | 文章                 |
-| `content/pages/`      | 独立页面与功能页介绍 |
-| `content/categories/` | 分类定义、封面和介绍 |
-| `content/tags/`       | 标签定义、封面和介绍 |
+`content/` 目录下共划分为四个子目录，分别对应四类内容：
 
-四类内容都支持 `.md`、`.mdx` 和嵌套管理目录。
+| 目录路径              | 用途说明                               | 生成的网址规则                                      |
+| --------------------- | -------------------------------------- | --------------------------------------------------- |
+| `content/posts/`      | 博客文章                               | `/posts/<slug>`（支持配置 `posts.pathPrefix` 前缀） |
+| `content/pages/`      | 独立页面（如关于、留言、近况等）       | `/<slug>`                                           |
+| `content/categories/` | 分类信息定义（分类名称、简介、封面图） | `/categories/<slug>`                                |
+| `content/tags/`       | 标签信息定义（标签名称、简介）         | `/tags/<slug>`                                      |
 
-## 文件与 slug
+## 文件与 Slug 规则
 
-普通文件省略 `slug` 时，使用去掉语言后缀的文件名；index 内容使用所在目录名。所有内容类型的 slug 以及文章引用的分类、标签 slug 均必须以小写英文字母或数字开头，其余字符只能包含小写英文字母、数字和短横线 `-`。同一文件的各语言版本必须使用相同 slug，包括无后缀、草稿、隐藏和停用语言版本。无效或不一致的值会在构建时输出包含文件位置的警告并停止构建。显式设置 slug 可以在移动管理文件夹后保留地址，例如：
+每篇内容的网址标识符（**`slug`**）按以下优先级生成：
 
-```text
-content/posts/notes/2026/hello.zh.md
+1. **Frontmatter 中的 `slug` 字段**：如果在文件头部显式指定了 `slug: custom-path`，则优先使用该值。
+2. **文件名或目录名**：
+   - 普通单文件（如 `content/posts/hello-world.md` 或 `hello-world.zh.md`）默认使用去除语言后缀后的文件名 `hello-world`。
+   - [内容包目录](./bundles.md)（如 `content/posts/2026-trip/index.md` 或 `index.zh.md`）默认使用其所在的文件夹名称 `2026-trip`。
+
+你可以在 `content/posts/` 下按年份或主题自由创建多层子目录来整理源文件（例如 `content/posts/tech/2026/my-post.md`），最终生成的 URL 默认只取末尾的 `my-post`。`slug` 只允许小写 ASCII 字母、数字和连字符，且必须以字母或数字开头，不能包含斜杠。需要日期目录时，请使用下面的 `posts.pathPrefix`。
+
+## 网址规则
+
+### 自定义文章路径前缀（`posts.pathPrefix`）
+
+默认情况下，文章的访问路径为 `/posts/<slug>`。如果你习惯带年份或月份的网址格式（或者正在从 Hexo、Hugo 迁移旧博客），可以在 `blog.config.ts` 中设置 `posts.pathPrefix`：
+
+```ts
+export default {
+  posts: {
+    // 支持的占位符：[year]、[month]、[day]
+    pathPrefix: '[year]/[month]',
+  },
+};
 ```
 
-设置 `slug: hello` 后，默认地址为 `/zh/posts/hello/`。移动文件时，相对图片路径与 MDX import 需要一并调整。
+配置为 `'[year]/[month]'` 后，发布日期为 `2026-03-29`、slug 为 `hello-world` 的文章网址将自动变为 `/posts/2026/03/hello-world`。
 
-## 独立文件与内容包
+### 多语言路由前缀
 
-普通文件保存一篇内容。需要附件时，在文件夹中使用 `index.md`、`index.mdx` 或其语言版本作为入口，其他文件随内容包一起发布，见[内容包与附件](./bundles.md)。
-
-独立页面可使用 `content/pages/[slug]/index.[lang].md` 或 `.mdx`；分类和标签也可直接放在各自目录下，或按需要增加管理目录。
-
-`404` 是内置错误页面的保留路由，不能用作独立页面的 slug；使用该值会停止构建。
-
-## 文章路径片段
-
-默认文章路径为 `/[lang]/posts/[slug]/`。`posts.pathPrefix` 在 posts 与 slug 之间添加目录：
-
-| 配置                | 示例地址                      |
-| ------------------- | ----------------------------- |
-| `''` 或省略         | `/zh/posts/hello/`            |
-| `'[year]/'`         | `/zh/posts/2026/hello/`       |
-| `'[year]/[month]/'` | `/zh/posts/2026/07/hello/`    |
-| `'notes/[year]/'`   | `/zh/posts/notes/2026/hello/` |
-
-支持 `[year]`、`[month]`、`[day]`，日期取 `site.timezone` 时区下的发布时间。月份和日期补零，推荐以 `/` 结尾。slug 始终在最后，且不能包含斜线；需要多层网址目录时使用 `posts.pathPrefix`。
-
-`site.localePrefixPolicy: 'omit-default-prefix'` 会省略默认语言片段。子目录部署在地址前加上 `site.baseUrl` 中的路径，见[语言前缀策略](./languages.md#语言前缀策略)。
-
-路径设置统一作用于主题生成的导航、canonical、语言切换、搜索、RSS、Sitemap 和内容包附件。主题不会自动迁移正文或自定义 HTML/JS 中的链接。修改 `posts.pathPrefix`、语言前缀策略或部署子目录后，作者应按最终发布地址检查相对链接、图片和附件路径是否正确，尤其注意跨年份文章和指向独立页面的链接。
-
-例如，从 `/zh/posts/2026/hello/` 引用 `/zh/posts/2025/older/`，应写 `../../2025/older/`；引用 `/zh/about/`，应写 `../../../about/`。构建完成后会检查正文中的本地相对地址（包括以 `/` 开头的路径）、资源和 HTML 锚点；失效时输出包含来源页面和目标的警告，但不阻止构建，也不自动修正链接。外部网址不进行联网检查。
-
-路径片段使用相对目录，保留首段 `page` 用于分页。空目录、越级路径、查询参数、百分号编码或未知占位符会触发校验错误。已上线站点更改路径后，在托管平台为旧地址设置重定向。
+在开启多语言时，网址是否包含语言前缀（例如 `/en/posts/hello-world`）取决于 `blog.config.ts` 中的 `site.localePrefixPolicy` 配置。详细说明请参阅[语言与多语言内容](./languages.md)。

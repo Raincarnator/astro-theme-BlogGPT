@@ -1,52 +1,67 @@
-# Archetype templates
+# Archetype Templates
 
-## Create content
+Instead of copying and pasting YAML frontmatter every time you start a new article, you can use BlogGPT's `pnpm new` command. It scaffolds new files from customizable templates stored in the `archetypes/` directory.
 
-```sh
-pnpm new post hello --title "My first article"
-pnpm new post travel --use bundle --title "Travel"
-pnpm new page contact --title "Contact"
-pnpm new category notes --title "Notes"
-pnpm new tag photography --title "Photography"
+## Create Content via CLI
+
+Run `pnpm new` from your project root:
+
+```bash
+pnpm new <post|page|category|tag> <slug> [--use <template>] [--title <title>]
 ```
 
-The format is `pnpm new <post|page|category|tag> <slug> [--use <template>] [--title <title>]`. Slugs must start with a lowercase ASCII letter or digit and contain only lowercase ASCII letters, digits and hyphens (-); titles may use any language. Types are singular and directories are plural. Omit `--use` for `default`, or use `--help` for help.
+### Common Examples
 
-The default article template includes `draft: true`. Change it to `false` when ready to publish.
+```bash
+# 1. Create a standard post at content/posts/my-post.mdx
+pnpm new post my-post --title "Hello World"
 
-## Template directories
+# 2. Create a folder-based post bundle at content/posts/photo-essay/index.mdx
+pnpm new post photo-essay --use bundle --title "Photo Essay"
+
+# 3. Create a standalone page at content/pages/uses.mdx
+pnpm new page uses --title "What I Use"
+
+# 4. Create a category definition at content/categories/notes.mdx
+pnpm new category notes --title "Reading Notes"
+```
+
+## Template Directories (`archetypes/`)
+
+The `archetypes/` folder in your project root defines what `pnpm new` generates. A typical layout looks like this:
 
 ```text
-archetypes/posts/default/[slug].mdx
-archetypes/posts/bundle/[slug]/index.mdx
+archetypes/
+├── posts/
+│   ├── default/
+│   │   └── [slug].mdx
+│   └── bundle/
+│       └── [slug]/
+│           └── index.mdx
+├── pages/       # Also contains default/ and bundle/
+├── categories/  # Also contains default/ and bundle/
+└── tags/        # Also contains default/ and bundle/
 ```
 
-Template directories map to the corresponding `content/` directory. Each of the four bundle templates provides an `index.mdx`. Add images, attachments and subfolders to copy them with new content.
+- **Default template**: `pnpm new post <slug>` reads `archetypes/posts/default/` and generates `content/posts/<slug>.mdx`.
+- **Bundle template**: Add `--use bundle` to select `archetypes/posts/bundle/` and generate `content/posts/<slug>/index.mdx`.
+- **Custom templates**: Create a directory under the matching content type, such as `archetypes/posts/tutorial/`, then select it with `--use tutorial`. The command copies every file and replaces variables in paths and text; templates can include images, attachments, or translated files.
 
-Place custom templates in a new directory under the relevant type, then select them with `--use`.
+Default post templates set `draft: true`. To publish a post, change it to `draft: false` and choose a publication date no later than the build time.
 
-## Variables
+## Template Variables
 
-Filenames and folder names use placeholders such as `[slug]`; Markdown / MDX bodies use <code v-pre>{{ slug }}</code>:
+Inside any file under `archetypes/`, you can use `{{ variable }}` placeholders that are filled in automatically when `pnpm new` runs:
 
-| Variable                 | Value                                               |
-| ------------------------ | --------------------------------------------------- |
-| `type`                   | Singular type: post / page / category / tag         |
-| `slug`                   | Supplied slug, such as notes-hello                  |
-| `title`                  | `--title`, or the slug’s final segment when omitted |
-| `template`               | Template name, defaulting to default                |
-| `date`                   | UTC date, YYYY-MM-DD                                |
-| `datetime`               | UTC ISO timestamp                                   |
-| `time`                   | UTC time, HH-mm-ss                                  |
-| `year` / `month` / `day` | UTC year / month / day                              |
-| `timestamp`              | Unix milliseconds                                   |
-
-Time variables share one execution timestamp. In filenames, datetime replaces colons with hyphens.
-
-```yaml
-title: '{{ title }}'
-date: '{{ datetime }}'
-slug: '{{ slug }}'
-```
-
-Quote YAML string placeholders; the command handles quotes, line breaks and other title characters, emitting double-quoted strings. Other attachments are copied unchanged. Existing destinations produce a conflict, preserving the original files.
+| Variable         | Example Output             | Description                                                      |
+| ---------------- | -------------------------- | ---------------------------------------------------------------- |
+| `{{ title }}`    | `Hello World`              | Value passed to `--title` (defaults to the unchanged `slug`).    |
+| `{{ slug }}`     | `hello-world`              | The `<slug>` argument passed to `pnpm new`.                      |
+| `{{ type }}`     | `post`                     | Content kind (`post`, `page`, `category`, or `tag`).             |
+| `{{ template }}` | `bundle`                   | Template name passed via `--use` (or the default template name). |
+| `{{ date }}`     | `2026-10-24`               | Current UTC date (`YYYY-MM-DD`).                                 |
+| `{{ time }}`     | `08-00-00`                 | Current UTC time with hyphens (`HH-mm-ss`).                      |
+| `{{ datetime }}` | `2026-10-24T08:00:00.000Z` | UTC ISO 8601 timestamp.                                          |
+| `{{ year }}`     | `2026`                     | Four-digit current UTC year.                                     |
+| `{{ month }}`    | `10`                       | Two-digit current UTC month (`01`–`12`).                         |
+| `{{ day }}`      | `24`                       | Two-digit current UTC day (`01`–`31`).                           |

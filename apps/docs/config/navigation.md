@@ -1,97 +1,130 @@
 # 导航、作者和友链
 
-## 两份导航
+本节介绍如何配置左侧边栏导航菜单（`sidebar`）、作者个人名片（`author`）、页脚版权信息（`footer`）以及友情链接页面（`friends.config.ts`）。
 
-`sidebar.items` 配置侧栏导航，`sidebar.menu` 配置左上角站名菜单。两者支持三种条目：
+## 两处侧边栏导航（`sidebar`）
 
-| type       | 用途       | 目标字段 |
-| ---------- | ---------- | -------- |
-| `builtin`  | 内置功能页 | `route`  |
-| `page`     | 独立页面   | `page`   |
-| `external` | 外部链接   | `href`   |
+BlogGPT 的左侧边栏提供两个导航配置区，均位于 `blog.config.ts` 的 `sidebar` 字段下：
+
+- **`sidebar.items`**：侧栏主导航入口（首项显示为独立入口，其余链接可放置归档、分类、标签和友链等页面）。
+- **`sidebar.menu`**：站点名称下拉菜单中的链接（可放置关于页、外部链接或订阅入口）。
+
+同时，你可以通过 `sidebar.width` 设置侧边栏的默认像素宽度以及拖拽调整的最小/最大范围：
 
 ```ts
-{ id: 'posts', type: 'builtin', route: 'posts', page: 'posts', label: '文章', icon: 'files' },
-{ id: 'about', type: 'page', page: 'about', label: '关于', icon: 'info' },
-{ id: 'repo', type: 'external', href: 'https://github.com/Raincarnator/BlogGPT', label: 'Github 仓库', icon: 'simple-icons:github', newTab: true },
+export default {
+  sidebar: {
+    width: {
+      default: 340,
+      min: 240,
+      max: 480,
+    },
+    items: [
+      {
+        id: 'home',
+        type: 'builtin',
+        route: 'home',
+        label: { zh: '首页', en: 'Home' },
+        icon: 'square-pen',
+      },
+      {
+        id: 'archives',
+        type: 'builtin',
+        route: 'archives',
+        label: { zh: '归档', en: 'Archives' },
+        icon: 'archive',
+      },
+      {
+        id: 'categories',
+        type: 'builtin',
+        route: 'categories',
+        label: { zh: '分类', en: 'Categories' },
+        icon: 'folder',
+      },
+      {
+        id: 'tags',
+        type: 'builtin',
+        route: 'tags',
+        label: { zh: '标签', en: 'Tags' },
+        icon: 'tag',
+      },
+      {
+        id: 'about',
+        type: 'page',
+        page: 'about',
+        label: { zh: '关于', en: 'About' },
+        icon: 'user',
+      },
+    ],
+  },
+};
 ```
 
-以上为 `sidebar.items` 条目示例。站名菜单使用相同目标字段，省略 `icon`。名称与简介支持多语言对象。UI 图标使用 Lucide，品牌入口使用 Simple Icons。
+导航项需要唯一的 `id` 与 `type`：内置页面使用 `type: 'builtin'` 和 `route`，独立页面使用 `type: 'page'` 和页面的 `slug`（填入 `page`），外部链接使用 `type: 'external'` 和 `href`。示例中的 `/zh/rss.xml` 对应默认语言为中文、保留语言前缀的站点，请按你的路由配置调整。上面的代码只展示 `sidebar` 的部分字段，请合并到现有配置。
 
-内置页的 `page` 绑定内容介绍，见[分类、标签和页面](../content/taxonomy.md)。`sidebar.width` 设置默认、最小和最大宽度；拖动分界线或聚焦后使用方向键调整，双击恢复默认宽度。
+## 作者简介与名片（`author`）
 
-## 作者菜单
-
-`author` 配置名字 `name`、介绍 `bio`、头像和社交链接。`name` 与 `bio` 都支持普通字符串或多语言对象，例如：
+作者信息会展示在侧边栏底部名片和文章头部署名中：
 
 ```ts
-author: {
-  // 头像和社交链接等字段保留
-  name: { zh: '站点作者', en: 'Site author' },
-  bio: { zh: '记录日常与想法。', en: 'Notes from everyday life.' },
-},
+export default {
+  author: {
+    name: { zh: 'Raincarnator', en: 'Raincarnator' },
+    bio: {
+      zh: '全栈开发者，记录技术与生活。',
+      en: 'Full-stack developer writing about web tech and life.',
+    },
+    avatar: '/avatar.webp', // 将头像图片放在 public/ 目录下
+    socials: [
+      {
+        label: 'GitHub',
+        icon: 'github',
+        href: 'https://github.com/Raincarnator',
+      },
+      { label: 'RSS', icon: 'lucide:rss', href: '/zh/rss.xml' },
+    ],
+  },
+};
 ```
 
-头像可填写 public 下的路径或完整 HTTPS 地址。
+## 友情链接配置（`friends.config.ts`）
 
-左下角菜单提供社交链接、快捷键说明、博客统计、外观、语言和 RSS。单语言站点自动隐藏语言选择，关闭统计时隐藏对应入口。快捷键说明与统计弹窗支持点击灰幕、关闭按钮或按 Escape 关闭。
-
-## 友链
-
-`friends.config.ts` 直接导出分组数组：
+BlogGPT 内置了支持分组展示的友情链接页面。直接编辑项目根目录下的 `friends.config.ts` 即可管理友链分组：
 
 ```ts
-const friends: FriendsConfig = [
+export default [
   {
-    title: { zh: '主题帮助', en: 'Theme help' },
+    title: { zh: '技术伙伴', en: 'Tech Friends' },
     description: {
-      zh: '文档与相关资源。',
-      en: 'Documentation and related resources.',
+      zh: '常读的独立技术博客',
+      en: 'Independent tech blogs I read regularly',
     },
     links: [
       {
-        name: 'BlogGPT',
-        description: { zh: '主题文档', en: 'Theme documentation' },
-        url: 'https://bloggpt.reincarnatey.net',
-        avatar: '/images/avatar.webp',
+        name: 'Astro 官方博客',
+        url: 'https://astro.build/blog/',
+        avatar: 'https://astro.build/favicon.svg',
+        description: '来自 Astro 团队的官方动态与技术文章。',
       },
     ],
   },
 ];
 ```
 
-每组包含标题、可选简介与链接数组。链接设置名称、简介、网址，以及头像或备用 Lucide 图标。页面标题与介绍正文来自绑定的 pages 内容。搜索框按名称、简介和分组名称即时筛选。
+## 页脚与版权声明（`footer`）
 
-完整类型与字段见[配置参考](./reference.md#friends-config-ts-友链)。
+在 `footer` 中配置站点底部的建站年份、版权署名以及文章默认许可协议：
 
-## 命令与补全
-
-首页加号菜单列出命令和近期文章。输入 `/` 筛选命令，输入 `@` 按全部公开文章的标题匹配；选择建议后补全输入，提交后执行。`/theme `、`/lang ` 还会提示参数。
-
-| 命令                     | 功能                                 |
-| ------------------------ | ------------------------------------ |
-| `/random`                | 随机打开一篇近期公开文章             |
-| `/lang` / `/lang en`     | 循环语言或选择已启用的语言           |
-| `/theme` / `/theme dark` | 切换外观，可指定 light、dark、system |
-| `/status`                | 打开博客统计                         |
-| `/categories`            | 打开分类列表                         |
-| `/archives`              | 打开归档                             |
-
-`posts.menuLimit` 控制加号菜单的近期文章数量，`posts.randomLimit` 控制随机候选数量。两项独立，大于文章数时包含全部，例如 `99999`。侧栏“最近”展示按时间排序的全部未置顶公开文章。
-
-## 搜索范围与定位
-
-| 范围 | 内容                                       |
-| ---- | ------------------------------------------ |
-| 文章 | 文章标题、简介与正文                       |
-| 标题 | 文章标题与简介                             |
-| 正文 | 文章正文，包含各级标题                     |
-| 全站 | 文章、独立页面、分类和标签，包含内置页介绍 |
-
-正文命中时，结果附带章节与高亮上下文，点击片段可定位到对应段落。相邻匹配会合并展示。开发服务提供本地检索，正式构建生成 Pagefind 索引。
-
-## 演示头像来源
-
-演示友链包括示例站点、主题帮助、图标资源与参考博客。主题帮助使用 BlogGPT、Astro、MDN 的公开标识；Lucide、Simple Icons、Stack、Fuwari 使用项目标识，AstroPaper 使用作者头像。虚构站点使用本地渐变图片。
-
-相关资源：[Astro](https://github.com/withastro)、[MDN](https://github.com/mdn)、[Lucide](https://lucide.dev)、[Simple Icons](https://simpleicons.org)、[Stack](https://stack.cai.im/logo.png)、[Fuwari](https://github.com/saicaca/fuwari)、[AstroPaper](https://github.com/satnaing/astro-paper)。图片权利属于相应项目或作者。
+```ts
+export default {
+  footer: {
+    since: 2024,
+    author: 'Raincarnator', // 注意：与 author.name 独立配置
+    showAttribution: true, // 是否展示主题与框架致谢链接
+    license: {
+      label: 'CC BY-NC-SA 4.0',
+      url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+    },
+  },
+};
+```

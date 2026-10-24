@@ -1,25 +1,45 @@
-# Migrate an existing blog
+# Migrate an Existing Blog
 
-## Organize articles
+Moving an existing blog from **Hugo**, **Hexo**, **Jekyll**, or another Astro theme to BlogGPT is straightforward because BlogGPT uses standard Markdown and YAML frontmatter. Follow the five steps below for a clean migration.
 
-Place Markdown / MDX files in `content/posts/` and fill in titles, slugs and dates. Convert the previous theme’s shortcodes or template tags to Markdown, HTML or MDX components.
+## 1. Organize Articles
 
-Keep translations of an article in the same directory, paired by language suffix. See [Languages and translations](../content/languages.md).
+Copy your existing `.md` or `.mdx` posts into `content/posts/`. You can keep them in a flat list or organize them into subfolders by year or topic—BlogGPT recursively scans `content/posts/`.
 
-## Manage assets
+Next, check the frontmatter at the top of each post:
 
-Use index bundles for articles with attachments, referencing images, code and downloads through relative paths. Put shared assets in `public/` and use site paths such as `/images/example.webp`.
+- **`title`** _(Required)_: Every post must have a string `title`.
+- **Required publication date**: BlogGPT natively recognizes `date`, `published`, or `pubDatetime` for the publication date, and `updated`, `modDatetime`, or `lastmod` for the last modified date—so most Hugo, Hexo, and Astro posts work without renaming date fields. Every post must provide one of the supported publication date fields.
+- **`draft`**: Set `draft: true` on unfinished posts.
 
-## Categories and tags
+## 2. Manage Assets
 
-Create definitions under `content/categories/` and `content/tags/` with names, descriptions and covers. Reference their slugs in article `categories` and `tags`.
+Depending on how your previous blog stored images and downloads, pick one of two approaches:
 
-## Set new addresses
+- **Co-located assets (Content Bundles)**: If a post has its own folder containing `index.md` and images (just like Hugo Page Bundles), place the entire folder inside `content/posts/<post-folder>/` and reference files using relative paths (`./image.png`). See [Bundles and Attachments](../content/bundles.md).
+- **Global static assets (`public/`)**: If your posts reference root-relative paths like `/images/cover.jpg`, move your static folder into `public/images/` so `/images/cover.jpg` continues to resolve unchanged.
 
-Set `site.baseUrl` and the language prefix policy. For date directories, use a pattern such as `posts.pathPrefix: '[year]/'`. See [Files and URLs](../content/organization.md).
+## 3. Categories and Tags
 
-Configure permanent redirects at the host from old URLs to the new site’s final addresses.
+In BlogGPT, categories and tags are explicitly defined in `content/categories/` and `content/tags/` (or referenced by slug in post frontmatter):
 
-## Check and publish
+1. In your posts, ensure `categories` and `tags` use clean slugs (for example, `categories: [frontend]` and `tags: [astro, typescript]`). Single strings (`category: frontend`) are also supported.
+2. Create matching metadata files in `content/categories/<slug>.md` and `content/tags/<slug>.md` to give each category or tag a human-readable display title, description, and optional cover image. See [Categories, Tags, and Pages](../content/taxonomy.md).
 
-Run `pnpm build` and `pnpm preview`. Check articles, images, attachments, code, categories, language switching, search, RSS and old links, then deploy the complete `dist/`. See [Build and deploy](./deployment.md) for the steps.
+## 4. Preserve Existing URLs
+
+If you want to keep your old post URLs intact so external links and search engine rankings don't break:
+
+- **Custom per-post slug**: Set `slug` in a post's frontmatter to override its filename. Slugs accept only lowercase ASCII letters, digits, and hyphens, starting with a letter or digit; an old path containing slashes cannot be used as a slug.
+- **Date-based URL prefixes**: If your old blog used URLs like `/posts/2026/my-post` or `/posts/2026/03/my-post`, configure `posts.pathPrefix` in `blog.config.ts` (for example, `pathPrefix: '[year]'` or `pathPrefix: '[year]/[month]'`). See [Structure and URLs](../content/organization.md).
+
+## 5. Check and Publish
+
+Run a full production build locally to validate all frontmatter schemas and internal links:
+
+```bash
+pnpm build
+pnpm preview
+```
+
+Fix any schema validation warnings printed in the terminal, test a few migrated posts and images in your browser, and then deploy!

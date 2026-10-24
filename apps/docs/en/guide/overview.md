@@ -1,37 +1,48 @@
-# Meet BlogGPT
+# What is BlogGPT?
 
-BlogGPT is an Astro blog theme inspired by ChatGPT’s layout. Write in Markdown or MDX, manage content as files, and find articles through the sidebar, search and reading outline.
+**BlogGPT** is a static blog theme built with [Astro](https://astro.build/) and modeled after ChatGPT's clean, distraction-free interface. It pairs a collapsible, resizable sidebar with a focused reading pane—making it a great fit for technical blogs, personal essays, and multi-language notes.
 
-## Start here
+All content lives in plain Markdown or MDX files inside your repository, with no database or external CMS required.
 
-| What you want to do                      | Read                                                                                                       |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Run the site                             | [Install and preview](./getting-started.md)                                                                |
-| Set the site name, author and appearance | [Site and appearance](../config/site.md)                                                                   |
-| Write articles                           | [Frontmatter](../content/frontmatter.md), [writing templates](../content/archetypes.md)                    |
-| Manage languages and attachments         | [Languages and translations](../content/languages.md), [bundles](../content/bundles.md)                    |
-| Adjust navigation and pages              | [Navigation](../config/navigation.md), [categories, tags and pages](../content/taxonomy.md)                |
-| Customize reading features               | [Article enhancements](../config/enhancements.md), [reading, sharing and statistics](../config/reading.md) |
-| Add styles and scripts                   | [Global extensions](../customization/hooks.md)                                                             |
-| Publish existing content                 | [Build and deploy](./deployment.md), [migration](./migration.md)                                           |
+## Documentation Map
 
-See the [complete configuration reference](../config/reference.md) for every public field’s type, default and input format.
+Use this table to jump straight to what you need:
 
-## Files you will use
+| What you want to do                                 | Where to look                                              |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| Set up a new blog locally                           | [Install and Preview](./getting-started.md)                |
+| Set your blog title, domain, and color theme        | [Site and Appearance](../config/site.md)                   |
+| Understand post metadata fields                     | [Frontmatter Reference](../content/frontmatter.md)         |
+| Scaffold new posts from the command line            | [Archetype Templates](../content/archetypes.md)            |
+| Publish in multiple languages                       | [Languages and Translations](../content/languages.md)      |
+| Keep images and attachments next to a post          | [Bundles and Attachments](../content/bundles.md)           |
+| Customize the sidebar, author card, and blogroll    | [Navigation, Author, and Friends](../config/navigation.md) |
+| Add categories, tags, or standalone pages           | [Categories, Tags, and Pages](../content/taxonomy.md)      |
+| Configure math, diagrams, callouts, and OG cards    | [Article Enhancements](../config/enhancements.md)          |
+| Adjust reading stats, share buttons, and pagination | [Reading UI, Sharing, and Stats](../config/reading.md)     |
+| Inject custom CSS, scripts, or `<head>` tags        | [Custom Hooks and Extensions](../customization/hooks.md)   |
+| Deploy to Vercel, Netlify, or GitHub Pages          | [Build and Deploy](./deployment.md)                        |
+| Move posts over from Hugo, Hexo, or Jekyll          | [Migrate an Existing Blog](./migration.md)                 |
+| Look up every option in `blog.config.ts`            | [Configuration Reference](../config/reference.md)          |
 
-| Location            | Purpose                                                        |
-| ------------------- | -------------------------------------------------------------- |
-| `blog.config.ts`    | Site, appearance, navigation, reading and interaction settings |
-| `friends.config.ts` | Grouped friend links                                           |
-| `content/`          | Articles, standalone pages, categories and tags                |
-| `public/`           | Avatars, covers and other shared assets                        |
-| `custom/`           | Custom HTML, CSS, client scripts and reusable components       |
-| `archetypes/`       | Templates for new content                                      |
+## Project Structure
 
-## Demo site
+When you create a blog from the [BlogGPT Starter Template](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), you will mainly work with these files and folders:
 
-The [demo](https://demo.bloggpt.reincarnatey.net) introduces features through getting started and publishing, writing and typography, and interface customization. Explore the interface or follow the reading order in the pinned “Meet BlogGPT” article.
+```text
+.
+├── blog.config.ts       # Main site, theme, navigation, and feature settings
+├── friends.config.ts    # Blogroll / friends link groups
+├── content/             # All Markdown and MDX content
+│   ├── posts/           # Blog posts
+│   ├── pages/           # Standalone pages (e.g., About)
+│   ├── categories/      # Category definitions
+│   └── tags/            # Tag definitions
+├── archetypes/          # Templates used by `pnpm new`
+├── custom/              # Custom <head> tags, CSS overrides, and client hooks
+└── public/              # Static files served at the site root (favicons, global assets)
+```
 
-Shared images live in `public/images/`: `avatar.webp` for the avatar, `covers/` for covers, `illustrations/` for illustrations and `friends/` for friend avatars. Bodies can also use relative images within bundles.
+## Live Demo
 
-To create your own site, replace the demo content, images and `example.com` placeholder links.
+Want to see how BlogGPT looks and feels in action? Check out the [Live Demo](https://demo.bloggpt.reincarnatey.net).

@@ -1,70 +1,84 @@
-# Reading, sharing and statistics
+# Reading UI, Sharing, and Stats
 
-## Article display switches
+Customize which metadata items appear on posts, how many posts show up in lists, how readers share your articles, and which metrics appear on the site statistics page.
 
-`article.display` sets global defaults. Articles and standalone pages override individual fields through frontmatter `display`. All fields default to enabled when omitted in both places.
+## Article Metadata Toggles (`article.display`)
 
-```yaml
-display:
-  title: true # Title, description and categories
-  author: true # Author
-  published: true # Publication date
-  readingTime: true # Estimated reading time
-  updated: true # Last update
-  tags: true # Tags at the bottom
-  share: true # Share button and panel
-  navigation: true # Previous and next articles
-```
-
-Include only the fields you want to change. Both `true` and `false` override global values. Tags and neighboring articles apply to posts; standalone pages support the other relevant fields.
-
-`date` sets publication time. Set `updated` for the last update; when it differs from publication time, it appears to the right of tags at the bottom. See [Frontmatter](../content/frontmatter.md) for aliases and field details.
-
-## Sharing templates
-
-Hover or focus “Share” to preview a cover, copy a link or select a social platform. Clicking the main button copies formatted text and briefly shows “Copied”.
+Control which elements are visible on post pages via `article.display` in `blog.config.ts` (all default to `true`):
 
 ```ts
-sharing: {
-  copyFormat: '{title}\n{description}\n{author} · {blog}\n{url}',
-  platforms: [
-    { name: 'X', icon: 'simple-icons:x', href: 'https://twitter.com/intent/tweet?text={title}&url={url}' },
-    { name: 'Email', icon: 'lucide:mail', href: 'mailto:?subject={title}&body={text}' },
-  ],
-}
+export default {
+  article: {
+    display: {
+      title: true, // Main article H1 title
+      author: true, // Author name & avatar
+      published: true, // Publication date
+      updated: true, // Last updated date
+      readingTime: true, // Word count & estimated reading time
+      tags: true, // Bottom tag pills
+      share: true, // Share button bar
+      navigation: true, // Previous / Next post links at the bottom
+    },
+  },
+};
 ```
 
-`copyFormat` accepts a string or localized map. Placeholders are `{title}`, `{description}`, `{author}`, `{blog}`, `{url}` and `{image}`. Platform hrefs also accept `{text}` for the combined sharing message. Link variables are encoded once automatically. URLs support HTTP, HTTPS and mailto.
+You can also override `display` inside an individual post's or page's frontmatter—for example, hiding `readingTime` and `navigation` on an About page.
 
-Add, remove or reorder entries in `platforms`. Use `simple-icons:` for brands and `lucide:` for ordinary actions. Platforms occupy up to two rows, then scroll. Pinterest requires a sharing image.
+## Post Lists and Pagination (`posts`)
 
-Presets include X, Facebook, LinkedIn, Reddit, Bluesky, Threads, Telegram, WhatsApp, LINE, Weibo, QQ, Qzone, Tumblr, Pinterest and email. Sharing URLs and covers use `site.baseUrl`; set a publicly accessible production domain so platforms can fetch page information.
+Configure how posts are paginated and listed across the home view and sidebar:
 
-## Blog statistics
+| Key                     | Default                                               | Description                                                                                                  |
+| ----------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `posts.perPage`         | `5`                                                   | Posts per page in the article list (`/posts/`); does not affect yearly archives or category pages.           |
+| `posts.homeLimit`       | `4`                                                   | Number of recent/featured posts highlighted on the home screen.                                              |
+| `posts.menuLimit`       | `12`                                                  | Number of article-title completion candidates in the input menu; the sidebar still lists all unpinned posts. |
+| `posts.randomLimit`     | `12`                                                  | Number of candidate posts used when choosing a random article.                                               |
+| `posts.showDraftsInDev` | `true`                                                | Show posts with `draft: true` when running `pnpm dev`.                                                       |
+| `posts.dateFormat`      | `{ year: 'numeric', month: 'short', day: 'numeric' }` | `Intl.DateTimeFormatOptions` used to format post dates.                                                      |
+
+## Social Sharing (`sharing`)
+
+BlogGPT lets readers copy a formatted citation snippet or share directly to social platforms. You can customize the copied text template using `{title}`, `{description}`, `{author}`, `{blog}`, and `{url}` placeholders:
 
 ```ts
-statistics: {
-  enabled: true,
-  articleCount: true,
-  wordCount: true,
-  days: true,
-  languages: true,
-  averageWords: true,
-  updateFrequency: true,
-  firstPublication: true,
-  lastUpdate: true,
-  heatmap: true,
-  recentWords: true,
-  recentLimit: 12,
-}
+export default {
+  sharing: {
+    copyFormat: {
+      zh: '《{title}》 - {author} · {blog}\n{url}',
+      en: '"{title}" by {author} · {blog}\n{url}',
+    },
+    platforms: [
+      {
+        name: 'X',
+        icon: 'x',
+        href: 'https://x.com/intent/tweet?text={title}&url={url}',
+      },
+    ],
+  },
+};
 ```
 
-Open statistics from the author menu or `/status`. Toggle individual metrics, or use `enabled` for the entire feature. Click the backdrop or close button, or press Escape to exit.
+## Site Statistics and Heatmap (`statistics`)
 
-Statistics use public articles in the current language and update on builds. Total and average length count body characters. The average publication interval divides the time between the earliest and latest publication by the number of intervals. First publication uses the earliest date; last update uses the latest `updated`, falling back to publication time per entry. Missing data appears as `—`.
+BlogGPT includes a built-in statistics overview showing total posts, total word count, writing streak/days active, language breakdown, and a GitHub-style publishing heatmap. Toggle individual metrics in `blog.config.ts`:
 
-The heatmap shows publications over the past 365 days, grouped by `site.timezone`. Dates with articles show their titles, descriptions and lengths, with links to open them. The bar chart shows the latest `recentLimit` articles in publication order from oldest to newest. Hover or focus for details; click to open an article.
-
-## Copy and localization
-
-`text` centralizes homepage and search headings, input prompts, Tab labels, 404 copy and footer descriptions. Site and author names, social labels and sharing platform names also accept localized maps. See the [configuration reference](./reference.md#text-descriptive-copy).
+```ts
+export default {
+  statistics: {
+    enabled: true,
+    articleCount: true,
+    wordCount: true,
+    days: true,
+    languages: true,
+    averageWords: true,
+    updateFrequency: true,
+    firstPublication: true,
+    lastUpdate: true,
+    heatmap: true,
+    recentWords: true,
+    recentLimit: 12,
+  },
+};
+```

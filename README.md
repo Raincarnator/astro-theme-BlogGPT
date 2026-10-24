@@ -1,58 +1,56 @@
 # BlogGPT
 
-**An Astro blog theme inspired by ChatGPT’s layout.**
+**A modern [Astro](https://astro.build/) blog theme inspired by ChatGPT's clean, focused interface.**
 
-Write in Markdown or MDX. Organize content as files. Give readers a familiar sidebar, a focused reading area and a search box that helps them find the next article.
+Write in Markdown or MDX, organize your posts with a collapsible sidebar, and help readers find anything in seconds with built-in full-text search.
 
 **English** · [简体中文](README.zh-CN.md)
 
-[Demo](https://demo.bloggpt.reincarnatey.net) · [Documentation](https://bloggpt.reincarnatey.net/en/)
+[Live Demo](https://demo.bloggpt.reincarnatey.net) · [Documentation](https://bloggpt.reincarnatey.net/en/) · [GitHub Repository](https://github.com/Raincarnator/astro-theme-BlogGPT)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaincarnator%2Fastro-theme-BlogGPT-starter)
+&nbsp;
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Raincarnator/astro-theme-BlogGPT-starter)
 
-Create a personal blog from the [minimal starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), with one welcome post, an About page and the official documentation link in the friend directory. The buttons create your own Git repository and deploy it using the included hosting configuration. Push future changes to your repository to update the site. See the [one-click deployment guide](https://bloggpt.reincarnatey.net/en/guide/deployment#one-click-deployment-starter).
+Get up and running in minutes with the [BlogGPT Starter Template](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), which comes pre-configured with a sample post, an About page, and sensible defaults. You can also [create a repository from the GitHub template](https://github.com/Raincarnator/astro-theme-BlogGPT-starter/generate) and connect your hosting provider later. The main theme repository includes the full demo content and documentation workspace.
 
-> **Getting started?** Follow the [installation guide](https://bloggpt.reincarnatey.net/en/guide/getting-started), then explore configuration, writing and deployment in the [documentation](https://bloggpt.reincarnatey.net/en/).
+> **New here?** Start with the [Getting Started Guide](https://bloggpt.reincarnatey.net/en/guide/getting-started), then explore the [Documentation](https://bloggpt.reincarnatey.net/en/) to customize your blog.
 
-![BlogGPT home — search and a resizable sidebar](.github/assets/readme/home.webp)
+![BlogGPT Home: Search & Resizable Sidebar](.github/assets/readme/home.webp)
 
-## Features
+## Key Features
 
-| Category             | Features                                                                                                                                                         |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reading interface    | Responsive layout, resizable sidebar, light/dark/system appearance, heading previews, an expandable outline, keyboard shortcuts and client navigation            |
-| Content management   | Articles, pages, categories and tags; nested folders, stable slugs, bundled attachments and writing templates                                                    |
-| Rich content         | Markdown / MDX, Expressive Code, KaTeX, Mermaid, Callouts, PhotoSwipe and interactive components                                                                 |
-| Browsing             | Pinned posts and chronological lists, pagination with page jumping, category covers, tag clouds, yearly archives and grouped friends                             |
-| Site search          | Article, title/description, body and whole-site scopes; highlighted context, slash commands and article-title completion                                         |
-| Internationalization | Configurable localization for interface copy and content; Chinese and English included (AI-translated English)                                                   |
-| Sharing and feeds    | Formatted copy, configurable social destinations, Satori share covers, RSS and Sitemap                                                                           |
-| Blog statistics      | Article and character totals and averages, publication intervals, first publication and latest update, a publishing heatmap and article-length bars              |
-| Customization        | Extensive settings for appearance, content and interactions, combined with site-wide HTML / CSS / JS extension files, let you customize the site to your liking. |
+| Category                  | Highlights                                                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Reading Experience**    | Responsive ChatGPT-style layout, resizable sidebar, light/dark/system themes, collapsible table of contents, keyboard shortcuts, and smooth client-side navigation |
+| **Content Management**    | Posts, standalone pages, categories, and tags; custom slugs, folder-based content bundles for local attachments, and CLI scaffolding templates (archetypes)        |
+| **Rich Markdown**         | Full Markdown & MDX support with Expressive Code syntax highlighting, KaTeX math formulas, Mermaid diagrams, callout blocks, and image lightbox                    |
+| **Content Discovery**     | Pinned/featured posts, chronological archives, pagination with page jump, category cover styles, tag cloud, and grouped blogroll (friends links)                   |
+| **Instant Search**        | Static full-text search powered by Pagefind with article, title/description, body, and whole-site scopes, keyword highlighting, and `/` commands                   |
+| **Multi-Language (i18n)** | Built-in English and Simplified Chinese UI, localized URL routing, filename-based translation linking, and customizable UI text                                    |
+| **Stats & Sharing**       | Estimated reading time, word count, site-wide writing statistics & activity heatmap, customizable share snippets, and dynamic Open Graph cover generation          |
+| **SEO & Extensibility**   | Open Graph tags, Twitter Cards, RSS feeds, Sitemap, and extension hooks (`custom/head.html`, `custom/styles.css`, `custom/client.ts`)                              |
 
-BlogGPT builds static files ready for static hosting.
+## Interface Preview
 
-## Preview
-
-### Article page · light
+### Article Page · Light
 
 ![Article page in light mode](.github/assets/readme/article-light.webp)
 
 <details>
 <summary>View six more interface previews</summary>
 
-### Article list
+### Article List
 
-![Article list with covers, tags and pagination](.github/assets/readme/posts.webp)
+![Article list with covers, tags, and pagination](.github/assets/readme/posts.webp)
 
-### Article page · dark
+### Article Page · Dark
 
 ![Article page in dark mode](.github/assets/readme/article-dark.webp)
 
 ### Categories
 
-![Category covers and the tag cloud](.github/assets/readme/categories.webp)
+![Category covers and tag cloud](.github/assets/readme/categories.webp)
 
 ### Archives
 
@@ -64,112 +62,14 @@ BlogGPT builds static files ready for static hosting.
 
 ### Statistics
 
-![Blog statistics, publication heatmap and article-length chart](.github/assets/readme/statistics.webp)
+![Writing statistics, publishing heatmap, and article-length chart](.github/assets/readme/statistics.webp)
 
 </details>
 
-Screenshots captured at **1920 × 1200** and styled with [RicoScreenshot](https://shot.ricoui.com/).
+## Quick Start
 
-## Quick start
+Follow the [Getting Started Guide](https://bloggpt.reincarnatey.net/en/guide/getting-started) to scaffold a new project, install dependencies, and start the local development server.
 
-For a personal blog, use the starter or deployment buttons above. This theme repository includes the complete demo content and documentation workspace. Maintainers can read about [starter automation](starter/MAINTAINING.md).
+## License
 
-Requirements: **Node.js 22.12+** and **pnpm 11**. Download or clone this repository, enter its root directory, then run:
-
-```sh
-pnpm install
-pnpm dev
-```
-
-Open the address printed in the terminal. The blog and documentation share a pnpm workspace; one install covers both.
-
-### Make it yours
-
-1. Edit `blog.config.ts`: set the complete production `site.baseUrl` (including any deployment subdirectory), languages, author, interface copy and navigation.
-2. Replace friend groups in `friends.config.ts`, or export an empty array `[]`.
-3. Rewrite the About page and replace the articles, categories and tags under `content/`.
-4. Replace sample avatars, social links and example.com addresses before publishing.
-
-Set enabled languages and the default language through `site.locales` and `site.defaultLocale`.
-
-Everyday configuration, writing and customization live primarily in `blog.config.ts`, `content/`, `public/`, `custom/` and `archetypes/`, with friend links in `friends.config.ts`. Keep one-off MDX components in article bundles and reusable components in `custom/components/`.
-
-### Write an article
-
-```sh
-pnpm new post hello --title "My first article"
-pnpm new post hello-bundle --use bundle --title "An article with attachments"
-```
-
-The first command creates a standalone file. The second creates a bundle with `index.mdx`; add images and attachments in the same folder. Types are singular: `post`, `page`, `category`, `tag`. `--use` chooses an archetype; `--title` sets the article title and otherwise defaults to the last slug segment.
-
-Default article templates create **drafts**. Set `draft: false` and choose its publication time when the article is ready.
-
-### Build and deploy
-
-```sh
-pnpm build
-pnpm preview
-```
-
-Connecting your Git repository to **Vercel** is recommended: select Astro, use `pnpm build` as the build command and `dist` as the output directory. Production branch commits automatically build and publish the site. Follow the [Vercel deployment tutorial](https://bloggpt.reincarnatey.net/en/guide/deployment#deploy-to-vercel-recommended) for the full setup. Other static hosts can also publish the complete `dist/` directory.
-
-The build checks types, renders pages, copies bundled assets, generates optional share cards and creates search indexes. Preview serves the production output; rebuild after changes. Scheduled articles also need a build after their publication time.
-
-Interface translations and their registry live in `src/i18n/`. Choose content languages through `site.locales`; missing interface translations fall back automatically. Contributors add translation files and register them in `src/i18n/i18n.config.ts` as part of a repository contribution. See the [language guide](https://bloggpt.reincarnatey.net/en/content/languages).
-
-## Documentation
-
-Read the [English documentation](https://bloggpt.reincarnatey.net/en/) or [简体中文文档](https://bloggpt.reincarnatey.net/). The guides explain installation, every configuration field, content organization and deployment.
-
-| Guide                                                                            | Read about                                                                          |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [Getting started](https://bloggpt.reincarnatey.net/en/guide/getting-started)     | Installation, first edits and commands                                              |
-| [Configuration reference](https://bloggpt.reincarnatey.net/en/config/reference)  | Every public field: types, requirements, initial values, omitted values and effects |
-| [Frontmatter](https://bloggpt.reincarnatey.net/en/content/frontmatter)           | Dates, covers, visibility, taxonomy and per-entry switches                          |
-| [Content organization](https://bloggpt.reincarnatey.net/en/content/organization) | Collections, stable URLs and nested folders                                         |
-| [Languages](https://bloggpt.reincarnatey.net/en/content/languages)               | Interface copy and translated content files                                         |
-| [Archetypes](https://bloggpt.reincarnatey.net/en/content/archetypes)             | New-content commands, templates and placeholders                                    |
-| [Extension files](https://bloggpt.reincarnatey.net/en/customization/hooks)       | Global HTML, CSS and client lifecycles                                              |
-| [Deployment](https://bloggpt.reincarnatey.net/en/guide/deployment)               | Domains, subdirectories and build output                                            |
-
-## Project structure
-
-```text
-blog.config.ts       Theme settings and localized copy
-friends.config.ts    Grouped friend links
-src/i18n/            Interface translations and their registry
-content/posts/       Articles
-content/pages/       Standalone pages and builtin introductions
-content/categories/  Category names, covers and introductions
-content/tags/        Tag names, covers and introductions
-archetypes/          Default and named content templates
-custom/              Site-wide HTML, CSS and JS extensions
-custom/components/   Reusable MDX components
-public/              Shared public assets
-src/                 Theme implementation
-apps/docs/           Documentation
-```
-
-Categories and tags are defined in content files. An `index.md` or `index.mdx` bundle publishes its directory’s attachments beside the rendered page. Use explicit slugs for stable URLs. Optional `posts.pathPrefix` adds publication-date segments such as `[year]` before the slug.
-
-## Development
-
-```sh
-pnpm check
-pnpm lint
-pnpm format:check
-pnpm build
-pnpm test
-pnpm docs:build
-```
-
-Build before running tests that inspect generated output. `pnpm build:all` builds both the blog and documentation.
-
-See [Contributing](CONTRIBUTING.md) for pull requests, translation contributions and the CI checks.
-
-## Credits and license
-
-The layout is inspired by ChatGPT. UI icons use Lucide; social brand icons use Simple Icons. Demo gradients were created with [FeralUI Gradient Builder](https://feralui.dev/gradients); see [demo assets](https://bloggpt.reincarnatey.net/en/guide/overview#demo-site).
-
-Theme code is licensed under [Apache-2.0](LICENSE). Documentation uses the [MIT License](apps/docs/LICENSE). Configure the blog content license through the footer settings. See [third-party notices](THIRD_PARTY_NOTICES.md) for font, icon and image sources.
+Theme code is released under [Apache-2.0](LICENSE). Documentation is licensed under [MIT](apps/docs/LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for bundled assets and dependencies.

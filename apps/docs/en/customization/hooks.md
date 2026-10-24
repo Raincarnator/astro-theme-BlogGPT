@@ -1,66 +1,60 @@
-# Global HTML / CSS / JS
+# Custom Hooks and Extensions
 
-## Extension files
+You can add custom web fonts, analytics, CSS overrides, and client-side behavior without editing the core theme. BlogGPT provides extension files inside the `custom/` folder at the root of your project.
 
-| File                     | Purpose                                                                 |
-| ------------------------ | ----------------------------------------------------------------------- |
-| `custom/head.html`       | Add to every page’s head, such as fonts, metadata and analytics scripts |
-| `custom/body-start.html` | Add at the start of body                                                |
-| `custom/body-end.html`   | Add at the end of body                                                  |
-| `custom/styles.css`      | Load custom styles after theme styles                                   |
-| `custom/client.ts`       | Run on first load and every client navigation                           |
-| `custom/components/`     | Store reusable components imported by multiple MDX entries              |
+## 1. Inject Custom `<head>` Tags (`custom/head.html`)
 
-The HTML, style and script entry points apply to blog articles, pages, lists and 404. Content imports components from `custom/components/` as needed. Keep one-off components in their article bundle, or write simple markup directly in MDX. See [MDX interactive components](../config/enhancements.md#mdx-interactive-components) for examples.
+Anything you place inside `custom/head.html` is injected directly into the `<head>` of every page. The file is read as raw HTML; Astro frontmatter is not executed. This is the right place for:
 
-## HTML and scripts
-
-For example, add a script supplied by your analytics service to `head.html`:
+- Third-party analytics (Umami, Plausible, Google Analytics, Cloudflare Web Analytics)
+- Custom web fonts (`<link rel="stylesheet" href="...">`)
+- Site ownership verification `<meta>` tags
 
 ```html
+<!-- custom/head.html -->
+<!-- Example: Umami Analytics -->
 <script
   defer
-  src="https://analytics.example.com/script.js"
-  data-website-id="YOUR_ID"
+  src="https://cloud.umami.is/script.js"
+  data-website-id="your-website-id"
 ></script>
 ```
 
-Replace the service address and ID. Use `%BASE_URL%my-script.js` for public assets; the placeholder becomes the deployment path.
+`custom/body-start.html` and `custom/body-end.html` also inject raw HTML at the start and end of `<body>`.
 
-## Client navigation
+## 2. Override Styles and CSS Variables (`custom/styles.css`)
 
-Handle page behavior in `onPageLoad` in `custom/client.ts`, retaining the existing `CustomPageContext` interface:
-
-```ts
-export function onPageLoad(context: CustomPageContext): void | (() => void) {
-  const button = context.document.querySelector('#my-button');
-  button?.addEventListener('click', () => console.log(context.path), {
-    signal: context.signal,
-  });
-  return () => {
-    // Clean up observers you created
-  };
-}
-```
-
-| Context field | Meaning                               |
-| ------------- | ------------------------------------- |
-| `document`    | Current Document                      |
-| `path`        | Current path                          |
-| `locale`      | Current language                      |
-| `signal`      | AbortSignal aborted before navigation |
-
-The returned function cleans up before navigation. Use `signal` to remove event listeners automatically, and release resources such as observers in the cleanup function. Native inline scripts can use `data-astro-rerun` to execute again after client navigation.
-
-## Styles
+Use `custom/styles.css` to tweak theme colors, font families, spacing, or component styles. Because it loads after the core theme stylesheet, your rules take precedence cleanly:
 
 ```css
-:root {
-  --accent: #6366f1;
+/* custom/styles.css */
+body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-.article-content {
-  font-family: system-ui, sans-serif;
+
+code,
+pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Customize dark mode accent or surface colors */
+html[data-theme='dark'] {
+  /* Your custom dark mode overrides */
 }
 ```
 
-Put your styles in `custom/styles.css`. Everyday writing and customization primarily use `blog.config.ts`, `content/`, `public/`, `custom/` and `archetypes/`, with friend links in `friends.config.ts`. Preserve these settings, content, assets, extensions and templates when updating the theme.
+## 3. Run Client Scripts Across Page Transitions (`custom/client.ts`)
+
+BlogGPT uses client-side navigation so switching between posts feels instant and keeps the sidebar state intact. Because the browser doesn't perform a full page reload on every link click, standard `DOMContentLoaded` listeners only fire once on initial load.
+
+To run custom JavaScript on **both** the initial page load and every subsequent client navigation, export an `onPageLoad` function from `custom/client.ts`:
+
+```ts
+// custom/client.ts
+export function onPageLoad() {
+  // Runs on initial load and after every client-side route change
+  console.log('Navigated to:', window.location.pathname);
+
+  // Example: Initialize a comment widget or custom interactive element
+}
+```

@@ -1,51 +1,46 @@
-# Files and URLs
+# Structure and URLs
 
-## Four content types
+BlogGPT organizes all site content under the `content/` directory using Astro Content Collections. You don't need to configure routes manually—file paths and frontmatter determine every page's URL.
 
-| Directory             | Purpose                                        |
-| --------------------- | ---------------------------------------------- |
-| `content/posts/`      | Articles                                       |
-| `content/pages/`      | Standalone pages and builtin introductions     |
-| `content/categories/` | Category definitions, covers and introductions |
-| `content/tags/`       | Tag definitions, covers and introductions      |
+## Four Content Types
 
-All four support `.md`, `.mdx` and nested management directories.
+Everything you write belongs to one of four folders under `content/`:
 
-## Files and slugs
+| Folder                | Purpose                                               | Generated URL Pattern                        |
+| --------------------- | ----------------------------------------------------- | -------------------------------------------- |
+| `content/posts/`      | Blog posts and articles                               | `/posts/<slug>` (or with `posts.pathPrefix`) |
+| `content/pages/`      | Standalone pages (e.g., About, Now, Uses)             | `/<slug>`                                    |
+| `content/categories/` | Category metadata (display title, description, cover) | `/categories/<slug>`                         |
+| `content/tags/`       | Tag metadata (display title, description)             | `/tags/<slug>`                               |
 
-When `slug` is omitted, a standalone file uses its filename without the language suffix; an index entry uses its containing folder’s name. Slugs for all content types, including category and tag references in articles, must start with a lowercase ASCII letter or digit and contain only lowercase ASCII letters, digits and hyphens (-). All language versions of a file must share a slug, including unsuffixed, draft, hidden and disabled-language versions. Invalid or mismatched values warn with source files and stop the build. An explicit slug preserves the address when moving management folders. For example:
+## Files and Slugs
 
-```text
-content/posts/notes/2026/hello.zh.md
+BlogGPT derives each entry's URL **slug** in the following priority order:
+
+1. **Explicit `slug` in frontmatter**: If you set `slug: custom-url` in the file's frontmatter, BlogGPT uses that exact value.
+2. **File or folder name**:
+   - For a single file like `content/posts/hello-world.md` (or `hello-world.en.md`), the default slug is `hello-world`.
+   - For a [content bundle](./bundles.md) like `content/posts/2026-trip/index.md` (or `index.en.md`), the default slug is the folder name (`2026-trip`).
+
+You can nest posts inside arbitrary subdirectories under `content/posts/` (for example, `content/posts/notes/2026/my-post.md`) to keep your workspace tidy. By default, only the final slug (`my-post`) is used in the URL. Slugs accept lowercase ASCII letters, digits, and hyphens, starting with a letter or digit; slashes are not allowed. For date-based directories, use `posts.pathPrefix` below.
+
+## URL Rules
+
+### Custom Post URL Prefixes (`posts.pathPrefix`)
+
+By default, posts live at `/posts/<slug>`. If you prefer date-based URLs (useful when migrating from Hugo, Hexo, or WordPress), set `posts.pathPrefix` in `blog.config.ts`:
+
+```ts
+export default {
+  posts: {
+    // Supported placeholders: [year], [month], [day]
+    pathPrefix: '[year]/[month]',
+  },
+};
 ```
 
-With `slug: hello`, the default address is `/zh/posts/hello/`. Adjust relative image paths and MDX imports when moving files.
+With `pathPrefix: '[year]/[month]'`, a post dated `2026-03-29` with slug `hello-world` resolves to `/posts/2026/03/hello-world`.
 
-## Standalone files and bundles
+### Language Prefixes
 
-A standalone file holds one entry. For attachments, use `index.md`, `index.mdx` or a language variant as a folder’s entry. Other files are published with the bundle. See [Bundles and attachments](./bundles.md).
-
-Standalone pages can use `content/pages/[slug]/index.[lang].md` or `.mdx`. Categories and tags may live directly under their respective directories or in additional management folders.
-
-`404` is reserved for the built-in error page and cannot be a standalone page slug. Using it stops the build.
-
-## Article path segments
-
-The default article path is `/[lang]/posts/[slug]/`. `posts.pathPrefix` adds directories between posts and the slug:
-
-| Setting             | Example address               |
-| ------------------- | ----------------------------- |
-| `''` or omitted     | `/zh/posts/hello/`            |
-| `'[year]/'`         | `/zh/posts/2026/hello/`       |
-| `'[year]/[month]/'` | `/zh/posts/2026/07/hello/`    |
-| `'notes/[year]/'`   | `/zh/posts/notes/2026/hello/` |
-
-Supported placeholders are `[year]`, `[month]` and `[day]`, using publication time in `site.timezone`. Month and day are zero-padded. A trailing `/` is recommended. The slug stays last and cannot contain slashes; use `posts.pathPrefix` for additional URL directories.
-
-`site.localePrefixPolicy: 'omit-default-prefix'` omits the default-language segment. Subdirectory deployments prepend the path from `site.baseUrl`. See [language prefix policies](./languages.md#language-prefix-policies).
-
-Paths apply consistently to theme-generated navigation, canonical URLs, language switching, search, RSS, Sitemap and bundle assets. The theme does not automatically migrate links in article bodies or custom HTML/JS. After changing `posts.pathPrefix`, the language prefix policy or deployment directory, authors must check relative links, images and attachment paths against the final published URLs, especially links across publication years or to standalone pages.
-
-For example, linking from `/zh/posts/2026/hello/` to `/zh/posts/2025/older/` requires `../../2025/older/`; linking to `/zh/about/` requires `../../../about/`. After rendering, the build checks local relative URLs in content (including paths starting with `/`), resources and HTML anchors. Invalid targets produce warnings naming the source page and destination, without failing the build or correcting links. External URLs are not checked over the network.
-
-Path segments use relative directories; the first segment `page` is reserved for pagination. Empty or parent segments, queries, percent encoding and unknown placeholders fail validation. When changing published paths, configure redirects at the host for old addresses.
+In multi-language sites, URLs may also include a locale prefix (such as `/en/posts/hello-world`) depending on your `site.localePrefixPolicy` setting in `blog.config.ts`. See [Languages and Translations](./languages.md) for details.

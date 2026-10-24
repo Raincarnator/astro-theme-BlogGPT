@@ -30,6 +30,23 @@
   display: block;
 }
 
+.vp-doc .deploy-badges > p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.vp-doc .deploy-badges a {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.vp-doc .deploy-badges img {
+  width: auto;
+  height: 32px;
+}
+
 @media (min-width: 960px) {
   .Layout .VPFooter.has-sidebar {
     padding-inline-start: calc(var(--vp-sidebar-width) + 32px);

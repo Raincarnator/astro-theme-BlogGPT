@@ -1,39 +1,45 @@
-# Interactive article outline
+# Table of Contents and Code Blocks
 
-## Short lines and previews
+Long technical posts are much easier to read with a responsive outline and readable code blocks. You can configure both in `blog.config.ts`.
 
-On wide screens, short lines appear to the left of the article, with lengths reflecting heading depth. Moving over a line shifts and darkens it and shows a section preview. Moving away restores emphasis to the current reading section.
+## Table of Contents (`article.toc`)
 
-Click a line to jump to its section, or hold the left mouse button and move vertically for continuous navigation.
-
-## Full outline
-
-Pause on the same line to expand the full outline, or click the expand button. The panel is centered vertically on the left, with hovered entries and lines highlighted together.
-
-A rounded dashed frame marks sections visible on screen. A section remains included while any of its body is visible, even after its heading scrolls away. Hold the left mouse button and move along entries to navigate quickly.
-
-Click outside, use the close button, select a section or press Escape to close. After the pointer leaves, `hideDelay` controls automatic closing; focus inside the outline keeps it open.
-
-## Configuration
-
-Set `article.toc`:
+BlogGPT automatically extracts headings (`<h2>` through `<h4>` by default) from your Markdown posts to build an interactive, collapsible table of contents:
 
 ```ts
-toc: {
-  enabled: true,
-  minDepth: 2,
-  maxDepth: 4,
-  expandDelay: 1000,
-  hideDelay: 800,
-}
+export default {
+  article: {
+    toc: {
+      enabled: true, // Enable the table of contents globally
+      minDepth: 2, // Highest heading level to include (2 = <h2>)
+      maxDepth: 4, // Lowest heading level to include (4 = <h4>)
+      expandDelay: 1000, // Hover/interaction delay (ms) before auto-expanding
+      hideDelay: 800, // Delay (ms) before collapsing after pointer leaves
+    },
+  },
+};
 ```
 
-`minDepth` and `maxDepth` select a range within H1–H6, defaulting to H2–H4. `expandDelay` is the delay after the pointer stops; `hideDelay` is the delay after it leaves. Both use milliseconds.
+To hide the table of contents on a specific short post or page, add `toc: false` to its YAML frontmatter.
 
-An entry’s `toc: true` or `toc: false` overrides the global switch. Outline links use the body’s heading anchors.
+## Code Blocks (`appearance`)
 
-## Narrow screens
+Syntax highlighting is powered by **Expressive Code** (Shiki), with automatic light/dark theme switching and a one-click copy button on every code block:
 
-On narrow screens, an outline button appears to the left of RSS. Click it to expand the panel from the top right, with the same visible-section frame and drag navigation.
+```ts
+export default {
+  appearance: {
+    codeThemes: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
+    showCodeLineNumbers: false, // Set to true to show line numbers by default
+  },
+};
+```
 
-The narrow-screen panel stays open until you click outside, the close button, the outline button or a section, or press Escape. The outline omits transitions when reduced motion is enabled.
+### Tips for Markdown Code Blocks
+
+- **Language label & syntax highlighting**: Specify the language right after the opening backticks (e.g., ` ```ts ` or ` ```bash `).
+- **File title header**: Add `title="blog.config.ts"` after the language tag to render a clean filename bar above the code block.
+- **Line highlighting**: Use `{2,4-6}` after the language tag to highlight specific lines.

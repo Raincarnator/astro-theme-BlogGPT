@@ -1,122 +1,59 @@
-# Frontmatter
+# Frontmatter Reference
 
-Frontmatter is YAML between the two opening --- lines of a .md or .mdx file. Each language file has its own metadata and body.
+Every Markdown (`.md`) or MDX (`.mdx`) file in `content/` starts with a YAML frontmatter block enclosed by `---`. All four content types require a **`title`**. Posts also require a publication date in `date`, `published`, or `pubDatetime`.
+
+## Shared Fields (All Four Content Types)
+
+These fields work across `posts`, `pages`, `categories`, and `tags`:
+
+| Field             | Type                                    | Default                      | Description                                                                                                                         |
+| ----------------- | --------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `title`           | `string`                                | _(Required)_                 | Display title of the post, page, category, or tag.                                                                                  |
+| `slug`            | `string`                                | Filename / folder name       | Custom URL slug (without locale suffix).                                                                                            |
+| `description`     | `string`                                | `''`                         | Short summary used in list previews, search results, and SEO `<meta>` tags.                                                         |
+| `image` / `cover` | `string`                                | —                            | Cover image path (relative bundle path like `./cover.jpg` or root path `/img/cover.jpg`).                                           |
+| `coverStyle`      | `'thumbnail' \| 'fade' \| 'background'` | Site default                 | Visual style when rendering the cover image in cards and headers.                                                                   |
+| `draft`           | `boolean`                               | `false`                      | When `true`, excludes the entry from production builds (`pnpm build`).                                                              |
+| `hidden`          | `boolean`                               | `false`                      | Keeps the page accessible by direct URL while hiding it from lists and navigation.                                                  |
+| `math`            | `boolean`                               | `article.math`               | Enable or disable KaTeX math rendering for this specific entry.                                                                     |
+| `mermaid`         | `boolean`                               | `article.mermaid`            | Enable or disable Mermaid diagram rendering for this specific entry.                                                                |
+| `lightbox`        | `boolean`                               | `article.lightbox`           | Enable or disable image zoom/lightbox for this specific entry.                                                                      |
+| `callouts`        | `boolean`                               | `article.callouts`           | Enable or disable GitHub-style callout blocks for this specific entry.                                                              |
+| `toc`             | `boolean`                               | `article.toc.enabled`        | Show or hide the table of contents for this specific entry.                                                                         |
+| `shareCover`      | `boolean`                               | `article.shareCover.enabled` | Enable or disable automatic Open Graph cover generation for this entry.                                                             |
+| `display`         | `Partial<ArticleDisplay>`               | `article.display`            | Override visibility of metadata elements (`author`, `published`, `readingTime`, `updated`, `tags`, `share`, `navigation`, `title`). |
+
+## Date Fields (Posts & Pages)
+
+To make migrating from other blog frameworks painless, BlogGPT accepts common aliases for publication and update dates:
+
+| Field     | Accepted Aliases           | Description                                                                                                                                                  |
+| --------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `date`    | `published`, `pubDatetime` | Publication date, required for posts and optional for standalone pages (`YYYY-MM-DD` or ISO 8601 timestamp). Priority: `date` > `published` > `pubDatetime`. |
+| `updated` | `modDatetime`, `lastmod`   | Last modified date. Priority: `updated` > `modDatetime` > `lastmod`.                                                                                         |
+
+## Post-Specific Fields (`content/posts/`)
+
+| Field                     | Type                 | Default | Description                                                         |
+| ------------------------- | -------------------- | ------- | ------------------------------------------------------------------- |
+| `categories` / `category` | `string \| string[]` | `[]`    | One or more category slugs (e.g., `[tech, astro]`).                 |
+| `tags`                    | `string \| string[]` | `[]`    | One or more tag slugs (e.g., `[guide, markdown]`).                  |
+| `featured`                | `boolean`            | `false` | Pins the post to the featured section in the sidebar and home view. |
+
+## Complete Example
 
 ```yaml
 ---
-title: 我的第一篇文章
-slug: hello
-description: 用一句话说明这篇文章讨论什么。
-date: '2026-10-16T09:00:00+08:00'
-categories: [guide]
-tags: [astro, content]
+title: Hello World
+slug: hello-world
+date: 2026-03-29
+updated: 2026-04-02
+description: A quick tour of BlogGPT frontmatter options and Markdown features.
+categories: [general]
+tags: [intro, bloggpt]
+featured: true
 image: ./cover.webp
-featured: false
-draft: false
+math: true
+mermaid: true
 ---
 ```
-
-Translate the sample title and description for each sibling while retaining technical identifiers and publication settings.
-
-## Common fields for all four kinds
-
-| Field         | Type                          | Required | When omitted                                                                 | Meaning and input                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`       | string                        | Yes      | No default                                                                   | Reading/list/browser/search title. Use a string in each file's language.                                                                                                                                                                                                                                                                                                                                                                                               |
-| `slug`        | string                        | No       | Standalone filename without language suffix; index uses containing directory | Stable URL identifier, e.g. hello or notes-hello. Start with a lowercase ASCII letter or digit; use only lowercase ASCII letters a–z, digits 0–9, and hyphens (-). For every content type, all language versions of the same file must share a slug, including unsuffixed, draft, hidden and disabled-language versions. Leading hyphens, uppercase, invalid characters or mismatched translations warn with source files and conflicting values, then stop the build. |
-| `description` | string                        | No       | Empty string                                                                 | Summary for lists, SEO, search, sharing and statistics; no automatic excerpt is generated.                                                                                                                                                                                                                                                                                                                                                                             |
-| `image`       | string                        | No       | No cover                                                                     | Above-title reading cover, list thumbnail or taxonomy cover. Accepts /images/a.webp, bundled ./a.webp or a complete HTTPS URL. Not every entry needs one.                                                                                                                                                                                                                                                                                                              |
-| `cover`       | string                        | No       | Same as image                                                                | Compatibility alias; image takes priority when both exist. Prefer image in new content.                                                                                                                                                                                                                                                                                                                                                                                |
-| `draft`       | boolean                       | No       | false                                                                        | Excluded from production; development preview follows showDraftsInDev.                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `hidden`      | boolean                       | No       | false                                                                        | Articles retain direct access but leave discovery; not access control. Other kinds are discussed below.                                                                                                                                                                                                                                                                                                                                                                |
-| `coverStyle`  | thumbnail / fade / background | No       | appearance.categoryCoverStyle                                                | Cover style for category index cards.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `math`        | boolean                       | No       | article.math                                                                 | Math enhancement.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `mermaid`     | boolean                       | No       | article.mermaid                                                              | Diagram enhancement.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `lightbox`    | boolean                       | No       | article.lightbox                                                             | Content-image gallery.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `callouts`    | boolean                       | No       | article.callouts                                                             | Callout enhancement.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `toc`         | boolean                       | No       | article.toc.enabled                                                          | Reading outline.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `shareCover`  | boolean                       | No       | article.shareCover.enabled                                                   | Satori share card, independent of ordinary covers or the share button.                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `display`     | partial display object        | No       | Inherit article.display field by field                                       | Reading controls listed below.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-
-All four content types recognize common fields. Body enhancements apply across content types; reading details and controls apply to articles and standalone pages.
-
-## Publication and update dates
-
-These fields apply to **posts and pages**. Posts require at least one publication field; page dates are optional.
-
-| Field         | Type                  | Rule                                                                                    |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------- |
-| `date`        | Parseable date string | Preferred publication timestamp for display, order, archives and publication decisions. |
-| `published`   | Parseable date string | Compatibility alias, ignored when date exists.                                          |
-| `pubDatetime` | Parseable date string | Third-priority publication alias.                                                       |
-| `updated`     | Parseable date string | Preferred last-update timestamp; no inference from filesystem times.                    |
-| `modDatetime` | Parseable date string | Second-priority update alias.                                                           |
-| `lastmod`     | Parseable date string | Third-priority update alias.                                                            |
-
-Prefer offset ISO timestamps, e.g. '2026-10-16T09:00:00+08:00' explicitly means 9 a.m. in UTC+8. A date-only '2026-10-16' is parsed as UTC midnight, then displayed in site.timezone. Values must be parseable by JavaScript; use an explicit date or timestamp as above.
-
-Date fields accept only parseable date strings as described above, not numeric timestamps, booleans, null, arrays or objects. Optional fields may be omitted, but cannot contain an empty string. Every supplied alias is validated, even when a higher-priority field takes precedence. Invalid dates produce a warning with the source file, field and value, then stop the build. Drafts, hidden content and disabled language versions follow the same rule. Unquoted ISO dates in YAML are also supported.
-
-Last update appears at the end of the body beside tags only when present and different from publication. display.updated hides it. Metadata supplies update dates. See publication states below for article scheduling.
-
-## Article-only fields
-
-| Field        | Type               | Required | When omitted | Meaning                                                               |
-| ------------ | ------------------ | -------- | ------------ | --------------------------------------------------------------------- |
-| `categories` | string or string[] | No       | []           | Category slugs, e.g. [guide, writing], defined in content/categories. |
-| `category`   | string or string[] | No       | []           | Compatibility input merged and deduplicated with categories.          |
-| `tags`       | string or string[] | No       | []           | Tag slugs, e.g. [astro, markdown], defined in content/tags.           |
-| `featured`   | boolean            | No       | false        | Pin in the sidebar without changing publication time.                 |
-
-Articles use definition slugs to associate categories and tags. These fields apply to posts.
-
-## Reading display switches
-
-Global defaults are article.display. Override only the fields you need. When both levels omit a field, its default is true.
-
-```yaml
-display:
-  title: true
-  author: false
-  published: true
-  readingTime: true
-  updated: true
-  tags: true
-  share: true
-  navigation: true
-```
-
-| Field                 | Shown when true                        | Effect of false                                             |
-| --------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| `display.title`       | Title, description and categories      | Hide the visual title, retaining cover and search/SEO title |
-| `display.author`      | Author avatar and name                 | Hide author information                                     |
-| `display.published`   | Configured publication date            | Hide the date without changing publication state            |
-| `display.readingTime` | Estimated reading minutes              | Hide the estimate                                           |
-| `display.updated`     | Update date differing from publication | Hide the bottom update message                              |
-| `display.tags`        | Bottom article tags                    | Hide tag links without deleting relations                   |
-| `display.share`       | Share button, popover and copy         | Hide controls without making content private                |
-| `display.navigation`  | Previous and next articles             | Hide adjacent navigation                                    |
-
-Standalone pages use article reading styles and applicable controls, but have no article tags or neighbors. List summaries are unaffected by reading-page display settings.
-
-## Override enhancements
-
-```yaml
-math: true
-mermaid: false
-lightbox: true
-callouts: true
-toc: false
-shareCover: false
-```
-
-Both true and false override global configuration. Omission alone means inheritance. Disabling an enhancement preserves basic Markdown rendering. Disabling Satori permits the ordinary image as the share preview.
-
-## Publication states
-
-- Draft or future posts have no production route and are excluded from lists, search, RSS and Sitemap. Development can preview them with showDraftsInDev; public discovery still excludes unpublished content.
-- Hidden posts apply per language version: select the version first, then exclude it from lists, search, archives, taxonomy article lists, RSS and Sitemap and add noindex. Lists do not fall back to another language to make it visible. The article still builds, retains its direct URL and remains publicly accessible through that URL.
-- Draft pages are excluded in production. Hidden pages remain directly accessible and receive noindex; adjust relevant navigation entries as needed.
-- Categories and tags referenced only by hidden articles still build a detail page, but stay out of public lists, tag clouds, search and Sitemap. Their article lists are empty and their pages use noindex, even when an independent definition exists. Groups also referenced by public articles list only those public articles. Public definitions with no article references can still appear independently.
-
-Rebuild after the scheduled date arrives. Filenames pair translations; the loader manages lang, _key and _locale automatically.

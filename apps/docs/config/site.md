@@ -1,81 +1,51 @@
 # 站点与外观
 
-本页介绍常用设置，全部字段、类型与默认值见[完整配置参考](./reference.md)。
+本节介绍如何在 `blog.config.ts` 中配置博客的基础身份信息（`site`）、视觉主题样式（`appearance`）以及界面提示文案（`text`）。
 
-## 站点地址与语言
+## 站点基础信息（`site`）
 
-```ts
-site: {
-  title: { zh: '我的站点', en: 'My site' },
-  baseUrl: 'https://blog.example.org/',
-  defaultLocale: 'zh',
-  locales: ['zh', 'en'],
-  localePrefixPolicy: 'redirect-to-default',
-  timezone: 'Asia/Shanghai',
-},
-```
+| 配置项                    | 类型                                                                 | 默认值                  | 说明                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| `site.title`              | `Localized`                                                          | _(必填)_                | 博客名称，显示在浏览器标签页、侧边栏顶部以及 RSS 订阅源中。                                             |
+| `site.baseUrl`            | `string`                                                             | _(必填)_                | 线上正式域名（如 `'https://blog.example.com'`），用于生成 Canonical 链接、Sitemap、RSS 与分享卡片地址。 |
+| `site.defaultLocale`      | `string`                                                             | `'zh'`                  | 站点默认语言代码。                                                                                      |
+| `site.locales`            | `string[]`                                                           | `['zh', 'en']`          | 站点启用的语言列表。                                                                                    |
+| `site.localePrefixPolicy` | `'redirect-to-default' \| 'omit-default-prefix' \| 'require-prefix'` | `'redirect-to-default'` | 多语言 URL 前缀策略。详见[语言与多语言内容](../content/languages.md)。                                  |
+| `site.timezone`           | `string`                                                             | `'Asia/Shanghai'`       | 用于格式化文章日期与统计发文热力图的 IANA 时区。                                                        |
 
-`baseUrl` 填写完整生产根地址；子目录部署可用 `https://example.org/blog/`。主题统一处理导航、资源与分享地址。
+## 视觉与主题外观（`appearance`）
 
-`locales` 设置启用语言，`defaultLocale` 设置默认语言。单语言站保留一个代码。`localePrefixPolicy` 设置语言前缀策略，见[语言与翻译](../content/languages.md)。
-
-更改语言前缀策略或部署子目录后，作者应检查正文相对链接是否仍指向正确地址。主题不自动迁移这些链接；构建时会警告失效的本地相对地址。
-
-## 作者与文案
-
-`author` 配置名字、介绍、头像和社交链接，`text` 集中配置首页标题、Tab 名称、搜索提示、404 和页脚说明。作者名字 `author.name` 与介绍 `author.bio` 等展示文字支持字符串或多语言对象。
-
-本地头像放在 `public/images/avatar.webp`，配置为 `/images/avatar.webp`。其他 public 资源使用相同路径规则。
-
-## 外观
+在 `appearance` 字段下管理深浅色模式、切页动画和分类卡片封面样式：
 
 ```ts
-appearance: {
-  defaultTheme: 'system',
-  pageTransition: 'fade',
-  codeThemes: { light: 'github-light', dark: 'github-dark' },
-  showCodeLineNumbers: false,
-  categoryCoverStyle: 'thumbnail',
-},
-```
-
-`defaultTheme` 可选 `light`、`dark`、`system`，读者保存的外观选择优先。`pageTransition` 使用 `fade` 淡入淡出或 `none` 直接切换。
-
-`codeThemes` 分别设置深浅色代码主题，名称使用当前安装的 Shiki / Expressive Code 支持的主题。
-
-`categoryCoverStyle` 可选缩略图 `thumbnail`、右侧渐隐 `fade`、完整背景 `background`，单个分类使用 frontmatter 的 `coverStyle` 覆盖。
-
-## 列表与日期
-
-| 字段                | 用途                   |
-| ------------------- | ---------------------- |
-| `posts.perPage`     | 文章列表每页数量       |
-| `posts.homeLimit`   | 首页文章数量           |
-| `posts.menuLimit`   | 加号菜单的近期文章数量 |
-| `posts.randomLimit` | 随机近期文章候选数量   |
-
-后两项设为大于实际文章数的正整数时包含全部，例如 `99999`。侧栏“最近”独立展示全部未置顶公开文章，按时间倒序排列。
-
-分页处点击当前页码，可以输入目标页；回车或移开焦点提交，Escape 取消。点击最大页码直接到最后一页。
-
-`posts.dateFormat` 使用原生 Intl 格式，例如 `{ dateStyle: 'long' }`。显示语言取当前界面语言，时区取 `site.timezone`。
-
-## 页脚
-
-```ts
-footer: {
-  since: '2026-01-01',
-  author: { zh: '站点维护者', en: 'Site maintainer' },
-  showAttribution: true,
-  license: {
-    label: 'CC BY-NC-SA 4.0',
-    url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+export default {
+  appearance: {
+    defaultTheme: 'system', // 'light' | 'dark' | 'system'
+    pageTransition: 'fade', // 'fade' | 'none'
+    codeThemes: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
+    showCodeLineNumbers: false,
+    categoryCoverStyle: 'thumbnail', // 'thumbnail' | 'fade' | 'background'
   },
-},
+};
 ```
 
-页脚第一行为版权、运行天数和文章统计，第二行使用 `text.footerDescription`，第三行为 Powered by Astro & BlogGPT 与内容许可。
+- **`defaultTheme`**：访客首次打开站点时的默认配色方案（浅色 `'light'`、深色 `'dark'` 或跟随系统 `'system'`）。
+- **`pageTransition`**：切换页面时的过渡动画效果（`'fade'` 为平滑淡入淡出，`'none'` 为立即切换）。
+- **`categoryCoverStyle`**：分类卡片封面的默认渲染方式（`'thumbnail'` 为缩略图、`'fade'` 为边缘渐变融合、`'background'` 为整卡背景图）。单篇文章或分类可通过 Frontmatter 中的 `coverStyle` 单独覆盖。
 
-`since` 接受年份或日期字符串；`author` 留空时跟随 `author.name`。`showAttribution` 控制驱动署名，`license` 按自己的博客内容授权填写。主题代码使用 Apache-2.0。
+## 自定义界面提示文案（`text`）
 
-最后一行固定使用英文，许可名称使用普通字符串。
+通过 `text` 配置项，你可以轻松修改首页搜索框上方的 ChatGPT 风格问候语、搜索占位符和 404 提示文字：
+
+| 配置项                                 | 说明                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `text.siteDescription`                 | 站点的默认 SEO 描述与 RSS 简介（当具体页面未填写 `description` 时使用）。 |
+| `text.homeHeading`                     | 首页搜索框上方的主标题问候语（例如 `"今天想读点什么？"`）。               |
+| `text.searchHeading`                   | 独立搜索页面顶部显示的标题。                                              |
+| `text.searchPlaceholder`               | 搜索输入框内的占位提示文字。                                              |
+| `text.notFoundMessage`                 | 404 页面显示的提示文案。                                                  |
+| `text.footerDescription`               | 页脚额外展示的简短签名或说明。                                            |
+| `text.tabs.search` / `text.tabs.posts` | 侧栏/移动端切换“搜索”与“文章”视图的标签文字。                             |

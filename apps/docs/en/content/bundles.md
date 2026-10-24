@@ -1,35 +1,52 @@
-# Bundles and attachments
+# Bundles and Attachments
 
-## One directory, one entry
+When a post includes several screenshots, photos, or downloadable attachments (such as `.zip` archives or `.pdf` handouts), scattering those files inside the global `public/` folder quickly gets messy. BlogGPT solves this with **Content Bundles**.
+
+## One Directory, One Entry
+
+Instead of creating a single `.md` file, create a folder for your post and place an `index.md` (or `index.<locale>.md`) file inside it:
 
 ```text
-content/posts/travel/
-  index.zh.mdx
-  index.en.md
-  cover.webp
-  photos/sunset.jpg
-  downloads/notes.zip
-  demo.html
+content/posts/my-trip/
+├── index.zh.md
+├── index.en.md
+├── photos/
+│   ├── sunset.jpg
+│   └── map.png
+└── downloads/
+    └── itinerary.pdf
 ```
 
-Index files hold the body and its translations. Other files are published as attachments beside the corresponding page. Bundles can contain images, video, archives, code, HTML and Markdown files.
+You can scaffold a bundle automatically with the CLI:
 
-## Relative references
-
-```md
-![Sunset](./photos/sunset.jpg)
-[Download notes](./downloads/notes.zip)
-[HTML example](./demo.html)
+```bash
+pnpm new post my-trip --use bundle --title "My Trip Notes"
 ```
 
-MDX can also use HTML tags, such as `<video controls src="./clip.mp4" />`. Astro can optimize Markdown images while retaining original attachments.
+## Relative References
 
-Asset addresses follow the actual rendered page path, including introductions bound to builtin pages.
+Inside `index.md` (or `index.en.md`), reference any image or attachment in the same folder using a relative path starting with `./`:
 
-Keep article-specific Astro components, scripts and styles in the same bundle as the MDX file, and import them with `import Demo from './Demo.astro'`. Put components shared by multiple articles in `custom/components/`. See [MDX interactive components](../config/enhancements.md#mdx-interactive-components).
+```markdown
+![Sunset over the bay](./photos/sunset.jpg)
 
-## Publication scope
+Download the full PDF itinerary: [Download Notes](./downloads/itinerary.pdf)
+```
 
-Bundle attachments are public with the body; the content loader handles language entry files. Attachments for unpublished articles are generated when published. Attachments are accessed as files.
+You can also reference bundle images in frontmatter:
 
-Choose resource names distinct from generated pages, such as `demo.html` for an HTML attachment. A conflict with `index.html` produces a build error. Put shared images for standalone files in `public/` and reference them as `/images/example.webp`.
+```yaml
+---
+title: My Trip Notes
+image: ./photos/sunset.jpg
+---
+```
+
+During `pnpm build`, BlogGPT automatically processes images and copies relative attachments alongside the generated post route so all links resolve cleanly. Both languages (`index.zh.md` and `index.en.md`) inside the same bundle folder can share the exact same `./photos/` and `./downloads/` files without duplicating assets.
+
+## Choosing Between a Bundle and `public/`
+
+| Use Case                                                                    | Recommended Location                         | Path Syntax                           |
+| --------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------- |
+| Post-specific screenshots, diagrams, cover images, or downloadable files    | **Content Bundle** (`content/posts/<slug>/`) | Relative path (`./photos/sunset.jpg`) |
+| Site-wide assets (favicon, author avatar, global fonts, verification files) | **`public/` directory**                      | Root-relative path (`/favicon.svg`)   |

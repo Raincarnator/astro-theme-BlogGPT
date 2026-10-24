@@ -1,45 +1,51 @@
-# Frequently asked questions
+# Frequently Asked Questions
 
-## Why is an article visible in development but absent from production?
+Here are quick solutions to the most common questions when configuring and running BlogGPT.
 
-Check `draft` and the publication date. Development can preview drafts and future articles with `posts.showDraftsInDev`. To publish, set the draft to `false` and build after its publication time.
+## Why is a post visible in `pnpm dev` missing from the production site?
 
-## Why does switching languages show fallback content?
+Check whether the post has `draft: true` in its frontmatter. By default, `posts.showDraftsInDev` is enabled (`true`) so you can preview drafts locally, while `pnpm build` strictly excludes all drafts from the production bundle. Set `draft: false` (or remove the `draft` field) when you are ready to publish. Posts dated after the build time are also excluded; rebuild after their publication time to make them available.
 
-Check for the requested language suffix in the same directory with the same base filename. See [Languages and translations](../content/languages.md#missing-translations) for selection order.
+## Why does switching languages show content in the fallback language?
 
-## Why does an attachment return 404?
+When you switch the UI language, BlogGPT looks for sibling translations with the same folder and base filename; every version must also share the same `slug`. If the requested translation is missing, it tries an unsuffixed version, the default language, and then the remaining configured languages, with a notice when displaying another language. See [Languages and Translations](../content/languages.md).
 
-Confirm the article uses an index bundle, the path and letter case match the file, and deployment includes complete output. Put shared assets for standalone articles in `public/`. See [Bundles and attachments](../content/bundles.md).
+## Why do local post attachments or images return 404?
 
-## Why does a Mermaid diagram show source?
+If you want to reference images or downloadable files using relative paths like `./diagram.png` or `./notes.pdf`, the post **must** be organized as a [Content Bundle](../content/bundles.md)—meaning the post lives in its own folder as `content/posts/<post-name>/index.md` alongside its attachments. Relative file links inside a standalone `content/posts/my-post.md` file will not be copied as bundle attachments.
 
-Confirm `mermaid` is enabled, the code block is marked `mermaid`, and its diagram syntax is valid. The renderer loads as the diagram approaches the viewport; check the browser console for loading failures.
+## Why are Mermaid diagrams rendered as plain code blocks?
 
-## How do I update search after editing content?
+Check two settings:
 
-Run `pnpm build` to generate current Pagefind indexes, then check with `pnpm preview`. Deploy pages and search indexes together.
+1. In `blog.config.ts`, make sure `article.mermaid` is set to `true` (default).
+2. In the post's frontmatter, make sure `mermaid: false` is not set, and wrap your diagram in a fenced ` ```mermaid ` code block.
 
-## Why does some configured copy still show old text in another language?
+## Why doesn't search reflect my latest content edits?
 
-Localized maps select the current language’s value; update each language key together. Body translations live in their corresponding Markdown / MDX files.
+Production search uses **Pagefind**, which creates its static index during `pnpm build`. Rebuild after editing content to update results in `pnpm preview`. In `pnpm dev`, a development-only JSON search endpoint works without a Pagefind build. If results still show old content, refresh the page and search again. Run `pnpm build && pnpm preview` before publishing to verify the production index.
 
-## Why does the footer still show the previous author?
+## Why do some UI strings stay in the old language after I edit `blog.config.ts`?
 
-`footer.author` can be configured separately. Set it to an empty string to follow `author.name`, then rebuild.
+Many text fields in `blog.config.ts` (such as `site.title`, `author.bio`, and `text.*`) accept a `Localized` value—either a single string or a per-locale object like `{ zh: '...', en: '...' }`. If you use a per-locale object and only update the `zh` key, switching to `en` will still display the old `en` value. Update all active locales in the object.
 
-## How do article and share covers work together?
+## I changed `author.name`—why does the footer still show the old copyright name?
 
-`image` sets body and list covers. With `article.shareCover` enabled, sharing uses a generated Satori image. Set `shareCover: false` on an entry to use its ordinary cover. `display.share` controls the share button.
+The sidebar profile card reads `author.name`, whereas the copyright line in the footer reads `footer.author` (configured independently of the profile name). Update `footer.author` in `blog.config.ts` to match your name.
 
-## Why does a category display its slug as its name?
+## What is the difference between a post `image` (`cover`) and `shareCover`?
 
-Create a definition for the slug in `content/categories/` or `content/tags/` and fill in title. Article categories and tags refer to the definition’s slug. See [Categories and tags](../content/taxonomy.md#categories-and-tags).
+- **`image` (or `cover`)** in frontmatter sets the visual banner image displayed on the post page and in category/post cards.
+- **`shareCover`** controls the generated Open Graph image (`1200×630` by default) shown when sharing a link. When enabled, the generated card takes priority over `image`; when disabled, the post cover is used if available.
 
-## How can custom scripts run after client navigation?
+## Why does a category or tag show its raw slug (e.g., `web-dev`) instead of a proper title?
 
-Register behavior in `onPageLoad` in `custom/client.ts`, with `signal` or a returned cleanup function. See [Global extensions](../customization/hooks.md).
+When you reference a category or tag slug in a post's frontmatter (like `categories: [web-dev]`) without creating a corresponding definition file in `content/categories/web-dev.md`, BlogGPT falls back to displaying the raw slug string. Create `content/categories/web-dev.md` with a `title` field (e.g., `title: Web Development`) to give it a clean display name.
 
-## What should I check when configuration fails?
+## Why doesn't my custom script in `<head>` run again after clicking a link?
 
-Follow the error message to check field names, types, required fields and ranges in `blog.config.ts` and `friends.config.ts`. See the [complete configuration reference](../config/reference.md).
+BlogGPT uses client-side navigation for fast page transitions, so the browser does not perform a full page reload when moving between articles. Instead of putting DOM-initialization scripts in `DOMContentLoaded`, export an `onPageLoad` function in `custom/client.ts`—it runs both on initial load and after every client-side navigation. See [Custom Hooks and Extensions](../customization/hooks.md).
+
+## Where should I look when `pnpm dev` or `pnpm build` fails with a config error?
+
+Check the terminal output carefully: BlogGPT validates both `blog.config.ts` and all Markdown frontmatter at build time. Most errors are caused by a missing required field (such as `title` in frontmatter or `site.baseUrl` in `blog.config.ts`) or an invalid enum value (such as a typo in `appearance.defaultTheme`). Refer to the [Configuration Reference](../config/reference.md) and [Frontmatter Reference](../content/frontmatter.md).

@@ -1,68 +1,73 @@
-# Install and preview
+# Install and Preview
 
-Start a personal blog with the [minimal starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), or use [one-click deployment to Vercel or Netlify](./deployment.md#one-click-deployment-starter) to create a repository and publish it. The following steps cover local installation and previews.
+This guide walks you through setting up a new BlogGPT site on your machine, writing your first post, and previewing the production build.
 
 ## Requirements
 
-Prepare Node.js **22.12 or newer** and pnpm **11**:
+Make sure you have the following installed before starting:
 
-```sh
+- **Node.js**: `24.x` for the starter (the main repository also supports `>= 22.12.0`)
+- **pnpm**: Use the version pinned in `package.json`
+
+Check your installed versions in the terminal:
+
+```bash
 node --version
 pnpm --version
 ```
 
-Download or clone the theme repository. Run these commands in the root containing `package.json`:
+## Initial Setup
 
-```sh
-pnpm install
+The fastest way to start is with the official [BlogGPT Starter Template](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), which includes a clean directory structure and sample content:
+
+```bash
+git clone https://github.com/Raincarnator/astro-theme-BlogGPT-starter.git my-blog
+cd my-blog
+corepack enable
+corepack install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the address printed in the terminal. Development watches content and style changes; restart after changing configuration or dependencies.
+Once the development server starts, open `http://localhost:4321` in your browser.
 
-## Initial setup
+### Personalize Your Site
 
-1. Set `site.baseUrl`, the site name and languages in `blog.config.ts`.
-2. Edit the `author` name, biography, avatar and social links, and descriptive copy in `text`.
-3. Adjust navigation and edit the pages and translations under `content/pages/`.
-4. Replace friend links in `friends.config.ts`, or export an empty array `[]`.
-5. Replace demo articles, categories, tags and images.
+Before writing, you will usually want to update a few basics:
 
-See the [complete configuration reference](../config/reference.md) for fields and [Site and appearance](../config/site.md) for common settings.
+1. **`blog.config.ts`**: Change `site.title`, `site.baseUrl`, and `author` (your name, bio, avatar, and social links).
+2. **`friends.config.ts`**: The initial blogroll links only to the official documentation site; add or clear links as you prefer.
+3. **`content/pages/`**: Update the built-in `about` page with your own introduction.
 
-Everyday configuration, writing and customization primarily use `blog.config.ts`, `content/`, `public/`, `custom/` and `archetypes/`, with friend links in `friends.config.ts`. Keep article-specific components in their bundle and shared components in `custom/components/`. See [MDX interactive components](../config/enhancements.md#mdx-interactive-components).
+## Write Your First Post
 
-## Write your first article
+You can create Markdown files manually under `content/posts/`, or use the `pnpm new` CLI command to generate a post from an archetype template:
 
-Create a standalone article:
+```bash
+# Create a single-file post at content/posts/hello.mdx
+pnpm new post hello --title "My First Post"
 
-```sh
-pnpm new post hello --title "My first article"
+# Create a folder bundle at content/posts/travel/index.mdx (great for posts with local images)
+pnpm new post travel --use bundle --title "Travel Post"
 ```
 
-This creates `content/posts/hello.mdx`. For images and attachments, use the bundle template:
+Open the generated file, write your Markdown content, and save—the browser preview updates automatically. Templates set `draft: true`; change it to `draft: false` and choose a publication date no later than the build time before publishing.
 
-```sh
-pnpm new post first-bundle --use bundle --title "An article with images"
-```
+## Preview Release Output
 
-This creates `content/posts/first-bundle/index.mdx`. Add attachments to the same folder. Edit the title, description and body, set `draft` to `false` and choose the publication date.
+Development mode provides full-text search through JSON data. Production builds generate the Pagefind search index and Open Graph cover images. To test everything locally before deploying:
 
-`--title` sets the title, `--use` selects a template, and the slug determines the URL. See [writing templates](../content/archetypes.md) for more options.
-
-## Preview production output
-
-```sh
+```bash
 pnpm build
 pnpm preview
 ```
 
-`build` checks types and generates pages, attachments, share covers and search indexes. `preview` serves production files from `dist/` to check search, publication states and deployment paths. Rebuild after changing content.
+## Common Commands
 
-## Common commands
-
-| Command        | Purpose                     |
-| -------------- | --------------------------- |
-| `pnpm dev`     | Start the live blog preview |
-| `pnpm build`   | Build the blog              |
-| `pnpm preview` | Preview the built blog      |
+| Command                  | Description                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `pnpm dev`               | Start the local development server with hot reload (draft posts are visible by default) |
+| `pnpm new <kind> <slug>` | Scaffold a new `post`, `page`, `category`, or `tag` from `archetypes/`                  |
+| `pnpm build`             | Build static production assets and search indexes into `dist/`                          |
+| `pnpm preview`           | Serve the compiled `dist/` directory locally to test production behavior                |
+| `pnpm astro sync`        | Regenerate Astro Content Collection TypeScript types                                    |

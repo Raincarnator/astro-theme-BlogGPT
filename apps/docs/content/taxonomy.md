@@ -1,64 +1,41 @@
 # 分类、标签和页面
 
+除了 `content/posts/` 下的博客文章外，BlogGPT 还在 `content/` 下提供了**分类（`categories`）**、**标签（`tags`）**与**独立页面（`pages`）**三类内容集合。
+
 ## 分类与标签
 
-在 `content/categories/guide.zh.md` 中定义分类：
+当你在文章的 Frontmatter 中声明 `categories: [frontend]` 或 `tags: [astro, css]` 时，BlogGPT 会自动生成对应的聚合归档页（如 `/categories/frontend`、`/tags/astro`）。
 
-```md
+如果某个分类或标签没有对应的说明文件，页面上默认会直接显示其英文短名称（如 `frontend`）。为了让分类和标签显示优雅的中文名称、简介、自定义封面图或多语言译名，你可以在 `content/categories/` 和 `content/tags/` 下创建同名 Markdown 文件：
+
+```markdown
 ---
-title: 使用指南
-slug: guide
-description: 从这里开始认识主题。
----
-
-这里可以继续写分类介绍。
-```
-
-文章的 `categories: [guide]` 引用这个 slug。标签使用相同方式，放在 `content/tags/`。两者都支持译文、MDX、封面与 index 内容包。
-
-已定义的分类可以独立展示；文章引用尚未定义的分类时，主题用 slug 生成分组名称。
-
-分类和标签定义中的 `hidden: true` 按语言版本生效：详情页始终构建并可通过网址访问，但不进入公开列表、标签云、搜索或 Sitemap。详情页仅列出公开文章；没有文章引用时仍保留空详情页。
-
-仅被隐藏文章引用的分类和标签仍生成可通过网址直接访问的详情页，但不进入公开列表、标签云、搜索或 Sitemap，详情页不列出任何文章。此规则按当前语言选中的文章版本判断；同时被公开文章引用的分组只列出公开文章。
-
-## 独立页面
-
-例如，在 `content/pages/about/index.zh.mdx` 中编写关于页，并配置导航：
-
-```ts
-{ id: 'about', type: 'page', page: 'about', label: { zh: '关于', en: 'About' }, icon: 'info' }
-```
-
-默认路径为 `/zh/about/`，语言前缀由站点策略决定。页面支持日期、作者、阅读时间、目录与分享，使用与文章相同的 `display` 设置，并可通过全站搜索找到。
-
-## 功能页的标题与介绍
-
-文章列表、分类、标签、归档和友链可以绑定 pages 内容：
-
-```ts
-{ id: 'categories', type: 'builtin', route: 'categories', page: 'categories',
-  label: { zh: '分类', en: 'Categories' }, icon: 'shapes' }
-```
-
-对应内容的 `title`、`description` 决定页面标题与简介，正文在功能列表之前渲染。各内置页使用一致的标题样式。移除 `page` 绑定后使用默认标题。
-
-文章列表只在第一页显示介绍正文，后续分页沿用标题和简介。`posts`、`categories`、`tags`、`archives`、`links` 可作为介绍内容 slug，绑定后使用内置页地址；自定义介绍 slug 通常还保留独立页面地址。
-
-## 封面与卡片
-
-```md
----
-title: 写作与排版
-slug: writing
-description: Markdown、代码和文章增强。
-image: /images/covers/writing.webp
-coverStyle: fade
+title: 前端工程
+description: 探讨现代 Web 框架、CSS 架构设计与浏览器性能优化。
+image: /images/categories/frontend.webp
+coverStyle: background
 ---
 
-分类导读，随后自动列出相关文章。
+这里可以编写该分类的详细介绍，将展示在分类归档页的顶部。
 ```
 
-共享封面放在 `public/`；内容包也可使用 `./cover.webp`。`coverStyle` 为分类卡片选择 `thumbnail`、`fade` 或 `background`，缺省使用 `appearance.categoryCoverStyle`。
+你也可以直接通过命令行快速创建分类或标签定义文件：
 
-分类详情依次显示返回链接、可选封面、标题与简介、介绍正文、文章列表。标签详情使用相同布局；分类列表下方的标签云按文章关联展示标签。
+```bash
+pnpm new category frontend --title "前端工程"
+pnpm new tag astro --title "Astro"
+```
+
+## 独立页面（`content/pages/`）
+
+`content/pages/` 用于存放不属于时间线文章的常驻独立页面，例如**关于我（`/about`）**、**近况（`/now`）**、**常用装备（`/uses`）**或**更新日志（`/changelog`）**。
+
+```bash
+pnpm new page about --title "关于我"
+```
+
+### 将独立页面添加到侧边栏导航
+
+新建 `content/pages/about.md` 后，该页面即可通过 `/about` 访问。如果你想把它的入口放到左侧边栏菜单中，只需在 `blog.config.ts` 的 `sidebar.items` 或 `sidebar.menu` 中添加一条链接配置即可（详见[导航、作者和友链](../config/navigation.md)）。
+
+如果你希望某个独立页面仅通过直接链接访问，而不出现在任何列表或搜索中，可在其 Frontmatter 中设置 `hidden: true`。

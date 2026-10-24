@@ -1,161 +1,70 @@
 # 文章增强
 
-`article` 设置正文增强的全局默认值，单篇通过 frontmatter 的同名字段覆盖。
+BlogGPT 原生集成了数学公式、流程图、图片点击放大、提示块（Callouts）以及自动生成社交分享封面卡片等功能。这些特性在 `blog.config.ts` 的 `article` 下默认全部开启，你也可以在单篇文章的 Frontmatter 中按需覆盖。
 
-```ts
-article: {
-  math: true,
-  mermaid: true,
-  lightbox: true,
-  callouts: true,
-  toc: { enabled: true, minDepth: 2, maxDepth: 4, expandDelay: 1000 },
-  shareCover: {
-    enabled: true, width: 1200, height: 630,
-    background: '#f5f5f5', foreground: '#171717', accent: '#3b82f6',
-  },
-}
-```
+## KaTeX 数学公式（`article.math`）
 
-## KaTeX 公式
+当 `article.math: true`（默认开启）时，你可以在正文中通过 `$...$` 编写行内公式，或通过 `$$...$$` 编写独立公式块：
 
-行内公式写作 `$E=mc^2$`，独立公式用两行 `$$` 包围：
+```markdown
+行内质能方程：$E = mc^2$。
 
-```md
 $$
-\int_0^1 x^2\,dx = \frac{1}{3}
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
 $$
 ```
 
-公式在构建时由 KaTeX 渲染。`math: false` 将其保留为 TeX 源码。
+如果某篇文章大量使用普通美元符号 `$`（例如讲解 Shell 脚本变量或商品价格）而不希望触发公式解析，只需在该文章的 Frontmatter 中添加 `math: false`。
 
-## Mermaid 图表
+## Mermaid 图表（`article.mermaid`）
 
-使用语言为 `mermaid` 的代码块：
+当 `article.mermaid: true`（默认开启）时，使用 ` ```mermaid ` 包裹的代码块会自动渲染为自适应浅色/深色主题的矢量流程图或时序图：
 
-````md
+````markdown
 ```mermaid
-flowchart LR
-  A[写作] --> B[构建]
-  B --> C[发布]
+graph LR
+  A[Markdown 原文] --> B(Astro 静态构建)
+  B --> C[静态页面 + Pagefind 索引]
 ```
 ````
 
-图表接近可视区域时加载渲染器，配色随外观切换。读者可以展开查看源代码。`mermaid: false` 将内容显示为代码块。
+## 图片点击放大 Lightbox（`article.lightbox`）
 
-## PhotoSwipe 图片灯箱
+当 `article.lightbox: true`（默认开启）时，读者点击正文中的任意配图即可全屏放大查看细节。若某个独立页面不需要图片灯箱效果，可在该页 Frontmatter 中设置 `lightbox: false`。
 
-点击正文图片可放大查看，支持缩放、多图切换和键盘操作。灯箱资源在首次打开时加载。已有链接的图片使用其链接；单张图片可通过 `data-no-lightbox` 排除。
+## 提示块 Callouts（`article.callouts`）
 
-## Callouts 提示块
+当 `article.callouts: true`（默认开启）时，支持使用 GitHub 风格的引用块语法插入醒目的提示框：
 
-```md
+```markdown
 > [!NOTE]
-> 这里是一段提示。
+> 补充背景信息，帮助读者理解上下文。
 
-> [!WARNING] 自定义标题
-> 发布前检查图片和链接。
+> [!TIP]
+> 实用的技巧、快捷方式或最佳实践建议。
+
+> [!WARNING]
+> 需要特别留意的潜在风险或操作注意事项。
 ```
 
-支持 NOTE、TIP、IMPORTANT、WARNING、CAUTION，以及 INFO、SUCCESS、QUESTION、DANGER。提示块内可继续写 Markdown，也可以嵌套引用。
+支持的提示类型包括：`NOTE`、`TIP`、`IMPORTANT`、`WARNING` 和 `CAUTION`。
 
-## MDX 交互组件
+## 自动动态生成 OG 分享封面（`article.shareCover`）
 
-### 文章内的一次性组件
+即便你没有为文章手动制作配图（未设置 `image`），BlogGPT 也能在构建时自动为每篇文章生成一张 `1200×630` 的高清 PNG 社交分享卡片（`og:image`），用于在微信、X（Twitter）、Discord 等平台分享链接时展示文章标题与作者名：
 
-一次性组件与正文放在同一个内容包内，相关脚本、样式和组件文案也放在这里。演示文章的目录如下：
-
-```text
-content/posts/demos/article-enhancements/
-  index.zh.mdx
-  index.en.mdx
-  SineWave.astro
-  sine-wave.ts
-  gallery-a.webp
-  gallery-b.webp
+```ts
+export default {
+  article: {
+    shareCover: {
+      enabled: true,
+      width: 1200,
+      height: 630,
+      background: '#f5f5f5',
+      foreground: '#171717',
+      accent: '#3b82f6',
+      // fontPath: './custom/fonts/NotoSansSC-Bold.otf', // 可选：指定自定义中文字体路径
+    },
+  },
+};
 ```
-
-在同目录的 MDX 中导入：
-
-```mdx
-import SineWave from './SineWave.astro';
-
-<SineWave lang="zh" />
-```
-
-组件支持振幅、周期和初始相位滑块、方向键与重置。`lang` 省略时使用站点默认语言；示例自带中文与英文文案，其他语言使用英文。添加组件自己的译文时，编辑 `SineWave.astro` 中的 `labels`。
-
-简单的一次性结构也可以直接写在 MDX 中：
-
-```mdx
-<aside class="not-prose">
-  <strong>实验说明</strong>
-  <p>拖动上方滑块，观察函数曲线的变化。</p>
-</aside>
-```
-
-需要 Astro 的 `<script>`、`<style>` 或更复杂的交互时，将源码放在包内的 `.astro` 文件中，再从 MDX 导入。内容包中的组件源码与其他附件一样随文章公开。
-
-### 多篇文章复用的组件
-
-复用组件放在 `custom/components/`。例如，创建 `custom/components/InfoBox.astro`：
-
-```astro
----
-interface Props {
-  title: string;
-}
-const { title } = Astro.props;
----
-
-<aside class="info-box not-prose">
-  <strong>{title}</strong>
-  <slot />
-</aside>
-
-<style>
-  .info-box {
-    padding: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-  }
-</style>
-```
-
-在 `content/posts/example/index.mdx` 中使用：
-
-```mdx
-import InfoBox from '../../../custom/components/InfoBox.astro';
-
-<InfoBox title="延伸阅读">
-  <p>这里可以放补充说明。</p>
-</InfoBox>
-```
-
-导入路径相对于当前 MDX 文件。由文章传入标题等文案，或将组件专用的多语言字典放在 `custom/components/`。组件引用后由 Astro 编译，脚本和样式也随组件处理。
-
-### 客户端交互
-
-原生 Astro 组件通过自身的 `<script>` 提供交互，无需额外框架集成。使用自定义元素时，在 `connectedCallback` 中绑定交互，在 `disconnectedCallback` 中清理监听器，确保站内切页后仍可正常使用。正弦函数示例展示了这种方式。
-
-需要 React、Vue 或 Svelte 时，添加对应 Astro 集成，再为框架组件设置 `client:load`、`client:visible` 等加载指令；这是需要调整项目依赖和 Astro 配置的进阶用法。
-
-## Satori 分享封面
-
-`article.shareCover` 设置生成尺寸、配色与字体，构建时输出 PNG 并用于 Open Graph / Twitter 元信息。字体默认使用本地 Noto Sans SC，可通过 `fontPath` 指定覆盖所需字符的字体文件。
-
-生成结果带缓存，内容或样式修改后重新生成。文章图地址为 `/[lang]/og/[slug].png`，独立页面为 `/[lang]/page-og/[slug].png`，语言前缀遵循站点策略。
-
-关闭自动生成时，分享预览使用普通封面。分享操作与平台配置见[阅读、分享与统计](./reading.md#分享模板)。
-
-## 单篇覆盖
-
-```yaml
-math: true
-mermaid: false
-lightbox: true
-callouts: true
-toc: true
-shareCover: false
-```
-
-`true` 开启、`false` 关闭，省略时继承全局。四类内容的正文均支持公式、图表、提示块和灯箱；文章与独立页面还支持目录和自动分享封面。
