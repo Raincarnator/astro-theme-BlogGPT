@@ -1,5 +1,7 @@
 # Install and preview
 
+Start a personal blog with the [minimal starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), or use [one-click deployment to Vercel or Netlify](./deployment.md#one-click-deployment-starter) to create a repository and publish it. The following steps cover local installation and previews.
+
 ## Requirements
 
 Prepare Node.js **22.12 or newer** and pnpm **11**:

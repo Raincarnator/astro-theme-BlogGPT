@@ -4,6 +4,21 @@ BlogGPT generates static files. Connecting a Git repository to Vercel for automa
 
 Build with `pnpm build`; the output directory is `dist/`.
 
+## One-click deployment (Starter)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaincarnator%2Fastro-theme-BlogGPT-starter)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Raincarnator/astro-theme-BlogGPT-starter)
+
+Start a personal blog from the automatically maintained [starter template repository](https://github.com/Raincarnator/astro-theme-BlogGPT-starter). It includes the necessary theme code, writing tools, one welcome post, an About page and the official documentation link in the friend directory, without demo articles or the documentation workspace. You can also choose **Use this template** in the repository to create your own blog repository.
+
+1. Click the deployment button for your hosting provider, sign in and follow the prompts to save the starter to your own Git repository.
+2. Deploy using the included `vercel.json` or `netlify.toml`. The starter uses Node.js 24 and the pnpm version pinned in `package.json`, and publishes `dist/`.
+3. Customize site details in `blog.config.ts`, articles and pages in `content/`, and friend links in `friends.config.ts`. Push commits to your repository to update the site automatically.
+
+The starter defaults to the production domain provided by the host. After adding a custom domain, set `SITE_URL` in your hosting provider and rebuild, or replace `site.baseUrl` with a fixed production address so canonical URLs, RSS and Sitemap use the correct domain. Upstream starter synchronization only updates the template repository; it does not overwrite your personal blog repository.
+
+The following sections cover production addresses, output checks and manual deployment. Starter projects created with the buttons can use their included hosting configuration directly.
+
 ## Production address
 
 Set `site.baseUrl` to the complete production address:

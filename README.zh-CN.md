@@ -1,7 +1,5 @@
 # BlogGPT
 
-需要精简的个人博客起点？维护者可通过 [starter 自动发布流程](starter/MAINTAINING.md) 维护独立模板仓库，提供 GitHub Template、Vercel 和 Netlify 部署入口，不包含演示文章和文档 workspace。
-
 **一个用 Astro 构建，受到 ChatGPT 布局启发的博客主题。**
 
 使用 Markdown 或 MDX 写作，以文件管理内容。通过熟悉的侧栏、专注的阅读区域和搜索框，让读者找到下一篇想读的文章。
@@ -9,6 +7,11 @@
 [English](README.md) · **简体中文**
 
 [查看演示](https://demo.bloggpt.reincarnatey.net) · [使用文档](https://bloggpt.reincarnatey.net/)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaincarnator%2Fastro-theme-BlogGPT-starter)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Raincarnator/astro-theme-BlogGPT-starter)
+
+通过[精简 starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter) 创建个人博客，初始仅有一篇欢迎文章、一个关于页和指向官方文档站的友链。点击按钮，在平台中创建自己的 Git 仓库，并使用随附配置完成部署；之后向自己的仓库推送修改即可更新站点。详见[一键部署说明](https://bloggpt.reincarnatey.net/guide/deployment#一键部署-starter)。
 
 > **开始搭建博客：** 先阅读[安装与预览](https://bloggpt.reincarnatey.net/guide/getting-started)，再通过[使用文档](https://bloggpt.reincarnatey.net/)了解配置、写作与部署。
 
@@ -68,6 +71,8 @@ BlogGPT 生成静态文件，可直接发布到静态托管服务。
 截图使用 **1920 × 1200** 尺寸拍摄，通过 [RicoScreenshot](https://shot.ricoui.com/) 美化。
 
 ## 快速开始
+
+搭建个人博客可使用上方 starter 或部署按钮。本主题仓库保留完整演示内容与文档 workspace；维护者可阅读 [starter 自动发布流程](starter/MAINTAINING.md)。
 
 环境要求：**Node.js 22.12+** 和 **pnpm 11**。下载或克隆仓库，进入根目录后运行：
 

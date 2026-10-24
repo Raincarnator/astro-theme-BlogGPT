@@ -8,6 +8,11 @@ Write in Markdown or MDX. Organize content as files. Give readers a familiar sid
 
 [Demo](https://demo.bloggpt.reincarnatey.net) · [Documentation](https://bloggpt.reincarnatey.net/en/)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaincarnator%2Fastro-theme-BlogGPT-starter)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Raincarnator/astro-theme-BlogGPT-starter)
+
+Create a personal blog from the [minimal starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter), with one welcome post, an About page and the official documentation link in the friend directory. The buttons create your own Git repository and deploy it using the included hosting configuration. Push future changes to your repository to update the site. See the [one-click deployment guide](https://bloggpt.reincarnatey.net/en/guide/deployment#one-click-deployment-starter).
+
 > **Getting started?** Follow the [installation guide](https://bloggpt.reincarnatey.net/en/guide/getting-started), then explore configuration, writing and deployment in the [documentation](https://bloggpt.reincarnatey.net/en/).
 
 ![BlogGPT home — search and a resizable sidebar](.github/assets/readme/home.webp)
@@ -67,7 +72,7 @@ Screenshots captured at **1920 × 1200** and styled with [RicoScreenshot](https:
 
 ## Quick start
 
-For a minimal personal blog, maintainers can publish a separate template repository with the [starter automation](starter/MAINTAINING.md). It includes GitHub Template, Vercel and Netlify deployment links without the demo articles or documentation workspace.
+For a personal blog, use the starter or deployment buttons above. This theme repository includes the complete demo content and documentation workspace. Maintainers can read about [starter automation](starter/MAINTAINING.md).
 
 Requirements: **Node.js 22.12+** and **pnpm 11**. Download or clone this repository, enter its root directory, then run:
 

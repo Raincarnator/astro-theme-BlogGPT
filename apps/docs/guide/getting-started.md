@@ -1,5 +1,7 @@
 # 安装与预览
 
+创建个人博客可使用[精简 starter](https://github.com/Raincarnator/astro-theme-BlogGPT-starter)，或通过 [Vercel / Netlify 一键部署](./deployment.md#一键部署-starter)直接创建仓库并上线。下面介绍本地安装与预览。
+
 ## 环境要求
 
 准备 Node.js **22.12 或更新版本**与 pnpm **11**：

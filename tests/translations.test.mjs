@@ -86,19 +86,21 @@ test('both README languages share screenshots, feature coverage and executable c
   const images = (text) =>
     [...text.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((match) => match[1]);
   assert.deepEqual(images(en), images(zh));
-  assert.equal(images(en).length, 8);
+  const screenshots = (text) =>
+    images(text).filter((image) => image.startsWith('.github/assets/readme/'));
+  assert.equal(screenshots(en).length, 8);
   for (const text of [en, zh]) {
     const folded = text.match(
       /<details>\s*<summary>[^<]+<\/summary>([\s\S]*?)<\/details>/,
     );
     assert.ok(folded, 'Additional previews are collapsible');
-    assert.equal(images(folded[1]).length, 6);
-    assert.deepEqual(images(text.replace(folded[0], '')), [
+    assert.equal(screenshots(folded[1]).length, 6);
+    assert.deepEqual(screenshots(text.replace(folded[0], '')), [
       '.github/assets/readme/home.webp',
       '.github/assets/readme/article-light.webp',
     ]);
   }
-  for (const image of images(en)) await access(image);
+  for (const image of screenshots(en)) await access(image);
   assert.match(en, /\*\*English\*\*.*README\.zh-CN\.md/);
   assert.match(zh, /\[English\]\(README\.md\)/);
 });

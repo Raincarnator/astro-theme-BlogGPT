@@ -4,6 +4,21 @@ BlogGPT 生成静态文件，推荐通过 Vercel 连接 Git 仓库自动构建�
 
 构建命令为 `pnpm build`，产物目录为 `dist/`。
 
+## 一键部署（Starter）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaincarnator%2Fastro-theme-BlogGPT-starter)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Raincarnator/astro-theme-BlogGPT-starter)
+
+新建个人博客可直接使用自动维护的 [starter 模板仓库](https://github.com/Raincarnator/astro-theme-BlogGPT-starter)。它包含必要的主题代码、写作工具、一篇欢迎文章、一个关于页，以及指向官方文档站的友链，不包含演示文章与文档 workspace。也可以通过仓库的 **Use this template** 创建自己的博客仓库。
+
+1. 点击对应平台的部署按钮，登录并按提示将 starter 保存到自己的 Git 仓库。
+2. 使用随附的 `vercel.json` 或 `netlify.toml` 完成部署。starter 使用 Node.js 24 和 `package.json` 中锁定的 pnpm 版本，发布目录为 `dist/`。
+3. 部署后修改 `blog.config.ts` 中的站点信息、`content/` 中的文章与页面，以及 `friends.config.ts` 中的友链；向自己的仓库推送提交即可自动更新站点。
+
+starter 默认使用平台提供的正式域名。绑定自定义域名后，在托管平台设置 `SITE_URL` 并重新构建，或将 `site.baseUrl` 改为固定的正式地址，让 canonical、RSS 和 Sitemap 使用正确的域名。上游 starter 的自动同步只更新模板仓库，不会覆盖你创建的个人博客仓库。
+
+以下章节说明生产地址、构建检查和手动部署；通过按钮创建的 starter 项目可直接使用随附的平台配置。
+
 ## 生产地址
 
 在 `site.baseUrl` 填写完整生产地址：
